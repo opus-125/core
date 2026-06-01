@@ -14,16 +14,21 @@ use Opus\AuditBundle\Crypto\Cipher;
 use Opus\AuditBundle\Crypto\CryptoShredder;
 use Opus\AuditBundle\Crypto\DoctrineKeyStore;
 use Opus\AuditBundle\Integrity\CanonicalJsonEncoder;
+use Opus\AuditBundle\Integrity\ChainVerifier;
 use Opus\AuditBundle\Integrity\HashCalculator;
 use Opus\AuditBundle\Integrity\PostgresAdvisoryLock;
 use Opus\AuditBundle\Integrity\PostgresHashChain;
 use Opus\AuditBundle\Metadata\AuditMetadataFactory;
 use Opus\AuditBundle\Metadata\FieldSanitizer;
 use Opus\AuditBundle\Reading\AuditEntryReader;
+use Opus\AuditBundle\Recording\ActorContextEncryptor;
 use Opus\AuditBundle\Recording\AuditContextProvider;
+use Opus\AuditBundle\Recording\AuditEventRecorder;
 use Opus\AuditBundle\Recording\AuditRecorder;
 use Opus\AuditBundle\Recording\ChangeSetNormalizer;
 use Opus\AuditBundle\Recording\DoctrineAuditListener;
+use Opus\AuditBundle\Retention\AttributeRetentionPolicy;
+use Opus\AuditBundle\Retention\Purger;
 use Opus\AuditBundle\Sealing\Sealer;
 use Opus\AuditBundle\Subject\AttributeSubjectResolver;
 use Opus\AuditBundle\Transaction\AuditTransaction;
@@ -51,6 +56,9 @@ final class AuditServices
         public readonly AuditTransaction $transaction,
         public readonly AuditEntryReader $reader,
         public readonly Sealer $sealer,
+        public readonly Purger $purger,
+        public readonly AuditEventRecorder $eventRecorder,
+        public readonly ChainVerifier $verifier,
     ) {
     }
 
@@ -77,6 +85,7 @@ final class AuditServices
         $actorResolver = new SecurityActorResolver($auditContext, $tokenStorage);
         $subjectResolver = new AttributeSubjectResolver($metadataFactory, $em);
         $contextProvider = new AuditContextProvider($auditContext, $requestStack);
+        $actorContextEncryptor = new ActorContextEncryptor($shredder);
 
         $recorder = new AuditRecorder(
             $em,
@@ -86,11 +95,12 @@ final class AuditServices
             $actorResolver,
             $subjectResolver,
             $contextProvider,
-            $shredder,
+            $actorContextEncryptor,
             $clock,
         );
 
         $listener = new DoctrineAuditListener($recorder, $metadataFactory);
+        $retentionPolicy = new AttributeRetentionPolicy($metadataFactory);
 
         return new self(
             $listener,
@@ -105,6 +115,9 @@ final class AuditServices
             new AuditTransaction($connection),
             new AuditEntryReader($shredder),
             new Sealer($connection, $clock),
+            new Purger($connection, $retentionPolicy, $clock),
+            new AuditEventRecorder($connection, $actorResolver, $subjectResolver, $contextProvider, $actorContextEncryptor, $clock),
+            new ChainVerifier($chain, $connection),
         );
     }
 

@@ -7,7 +7,6 @@ namespace Opus\AuditBundle\Recording;
 use Doctrine\ORM\EntityManagerInterface;
 use Opus\AuditBundle\Actor\Actor;
 use Opus\AuditBundle\Actor\ActorResolverInterface;
-use Opus\AuditBundle\Crypto\CryptoShredder;
 use Opus\AuditBundle\Enum\AuditAction;
 use Opus\AuditBundle\Integrity\AppendedLink;
 use Opus\AuditBundle\Integrity\ChainBackendInterface;
@@ -39,7 +38,7 @@ final class AuditRecorder
         private readonly ActorResolverInterface $actorResolver,
         private readonly SubjectResolverInterface $subjectResolver,
         private readonly AuditContextProvider $contextProvider,
-        private readonly CryptoShredder $shredder,
+        private readonly ActorContextEncryptor $actorContextEncryptor,
         private readonly ClockInterface $clock,
     ) {
     }
@@ -88,36 +87,14 @@ final class AuditRecorder
     }
 
     /**
-     * Build the context map and the (possibly encrypted) actor label.
-     *
-     * Sensitive context (IP, user-agent) and the actor label are encrypted under
-     * the actor's subject key when the actor is an identifiable person, so they
-     * are crypto-shredded together with everything else about them. Without an
-     * actor subject (system/anonymous) they are stored as-is.
-     *
      * @param list<string> $actorSubjects
      *
      * @return array{0: array<string, mixed>, 1: string|null} [context, actorLabel]
      */
     private function resolveActorContext(Actor $actor, array $actorSubjects): array
     {
-        [$context, $sensitive] = $this->contextProvider->gather($actor);
-        $label = $actor->label;
+        [$public, $sensitive] = $this->contextProvider->gather($actor);
 
-        if ([] !== $actorSubjects) {
-            foreach ($sensitive as $key => $value) {
-                $context[$key] = $this->shredder->encryptValue($value, $actorSubjects);
-            }
-
-            if (null !== $label) {
-                $label = (string) json_encode($this->shredder->encryptValue($label, $actorSubjects), \JSON_THROW_ON_ERROR);
-            }
-        } else {
-            foreach ($sensitive as $key => $value) {
-                $context[$key] = $value;
-            }
-        }
-
-        return [$context, $label];
+        return $this->actorContextEncryptor->apply($public, $sensitive, $actor->label, $actorSubjects);
     }
 }
