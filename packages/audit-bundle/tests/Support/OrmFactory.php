@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Opus\AuditBundle\Tests\Support;
 
+use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
@@ -39,6 +40,7 @@ final class OrmFactory
     public static function createEntityManager(
         ?Connection $connection = null,
         array $extraMappingPaths = [],
+        ?EventManager $eventManager = null,
     ): EntityManagerInterface {
         $config = ORMSetup::createAttributeMetadataConfiguration(
             paths: array_merge([\dirname(__DIR__, 2).'/src/Model'], $extraMappingPaths),
@@ -48,7 +50,7 @@ final class OrmFactory
 
         $connection ??= self::createConnection();
 
-        return new EntityManager($connection, $config);
+        return new EntityManager($connection, $config, $eventManager);
     }
 
     /**
