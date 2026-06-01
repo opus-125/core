@@ -33,14 +33,30 @@ jobs:
           path: target
           fetch-depth: 0
 
-      - name: Mirror docs/ into target repo
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: source/docs/package-lock.json
+
+      - name: Build docs site
+        working-directory: source/docs
+        run: |
+          npm ci
+          npm run build
+
+      # Pages serves static files only — it does not transpile TypeScript.
+      # Mirror the built `dist/` output, never the raw source (which references
+      # /src/main.tsx and would be served as application/octet-stream).
+      - name: Mirror built docs into target repo
         run: |
           rsync -av --delete \
             --exclude='.git' \
             --exclude='.github' \
-            --exclude='node_modules' \
-            --exclude='dist' \
-            source/docs/ target/
+            source/docs/dist/ target/
+          # Prevent GitHub Pages' Jekyll from ignoring asset paths.
+          touch target/.nojekyll
 
       - name: Commit and push if changed
         working-directory: target
