@@ -77,6 +77,12 @@ opus_audit:
 Then create the audit tables (`audit_entry`, `audit_event`, `audit_seal`,
 `audit_crypto_key`) with your usual schema tool / migrations.
 
+With **DoctrineBundle** installed (`^3.2` for Symfony 8) the bundle registers
+its entity mappings and its `onFlush` listener automatically — no glue code.
+Without DoctrineBundle it works against a hand-wired `EntityManager` too; just
+make `Doctrine\ORM\EntityManagerInterface` and `Doctrine\DBAL\Connection`
+available as services and map the `Opus\AuditBundle\Model` directory.
+
 > **Requirements:** PostgreSQL (gapless sequencing uses advisory locks and the
 > integrity model is built around it) and the `sodium` extension (AEAD
 > encryption). The bundle integrates with Doctrine ORM via a single `onFlush`

@@ -43,12 +43,11 @@ php bin/console audit:export --stream=antrag --format=json
 php bin/console audit:purge --force                       # honours retention + holds
 ```
 
-## How Doctrine is wired
+## How it is wired
 
-DoctrineBundle does not yet support Symfony 8, so this demo builds the
-`EntityManager`/`Connection` by hand ([`src/Doctrine/DoctrineFactory.php`](src/Doctrine/DoctrineFactory.php))
-and attaches the audit listener lazily
-([`src/Audit/AuditListenerRegistrar.php`](src/Audit/AuditListenerRegistrar.php)).
-In a DoctrineBundle application both files disappear: Doctrine is configured in
-YAML and the listener is auto-registered through its `doctrine.event_listener`
-tag.
+Standard DoctrineBundle, nothing special: Doctrine is configured in
+[`config/packages/doctrine.yaml`](config/packages/doctrine.yaml) and the audit
+bundle in [`config/packages/opus_audit.yaml`](config/packages/opus_audit.yaml).
+The bundle registers its own entity mappings and its `onFlush` listener
+automatically, so there is no glue code — the demo's `src/` contains only the
+domain entities and the `app:demo` command.

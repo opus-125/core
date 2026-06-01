@@ -21,9 +21,13 @@
         "symfony/uid": "^8.0"
     },
     "require-dev": {
+        "doctrine/doctrine-bundle": "^3.2",
         "phpunit/phpunit": "^12.0",
         "symfony/framework-bundle": "^8.0",
         "symfony/var-dumper": "^8.0"
+    },
+    "suggest": {
+        "doctrine/doctrine-bundle": "Auto-registers the audit entity mappings and the onFlush listener (^3.2 for Symfony 8)."
     },
     "autoload": {
         "psr-4": {

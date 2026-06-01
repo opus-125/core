@@ -1,0 +1,12 @@
+doctrine:
+    dbal:
+        url: '%env(resolve:DATABASE_URL)%'
+        server_version: '16'
+    orm:
+        # The audit bundle registers its own entity mappings automatically.
+        mappings:
+            App:
+                type: attribute
+                dir: '%kernel.project_dir%/src/Entity'
+                prefix: 'App\Entity'
+                is_bundle: false

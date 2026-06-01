@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Opus\AuditBundle;
 
+use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -49,6 +50,21 @@ final class OpusAuditBundle extends AbstractBundle
                     ->end()
                 ->end()
             ->end();
+    }
+
+    public function build(ContainerBuilder $container): void
+    {
+        parent::build($container);
+
+        // When DoctrineBundle is installed, register the audit entity mappings
+        // automatically so consumers don't have to. Guarded by class_exists so
+        // the bundle stays usable with a hand-wired EntityManager too.
+        if (class_exists(DoctrineOrmMappingsPass::class)) {
+            $container->addCompilerPass(DoctrineOrmMappingsPass::createAttributeMappingDriver(
+                ['Opus\\AuditBundle\\Model'],
+                [__DIR__.'/Model'],
+            ));
+        }
     }
 
     /**
