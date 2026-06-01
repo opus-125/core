@@ -7,3 +7,15 @@ services:
         resource: '../src/'
         exclude:
             - '../src/Kernel.php'
+            - '../src/Entity/'
+
+    # DoctrineBundle is not yet Symfony 8 compatible, so the demo builds the
+    # EntityManager and Connection itself. With DoctrineBundle these two
+    # definitions go away and Doctrine is configured in YAML instead.
+    Doctrine\ORM\EntityManagerInterface:
+        factory: ['App\Doctrine\DoctrineFactory', 'createEntityManager']
+        arguments: ['%env(DATABASE_URL)%']
+
+    Doctrine\DBAL\Connection:
+        factory: ['App\Doctrine\DoctrineFactory', 'createConnection']
+        arguments: ['@Doctrine\ORM\EntityManagerInterface']

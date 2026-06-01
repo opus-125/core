@@ -1,0 +1,8 @@
+opus_audit:
+    # Master key (KEK) for crypto-shredding. In production keep this in a secret
+    # store / vault, never in the repository.
+    kek: '%env(OPUS_AUDIT_KEK)%'
+
+    # No global auto-purge default; entities opt in via #[Retention(...)].
+    retention:
+        default: null
