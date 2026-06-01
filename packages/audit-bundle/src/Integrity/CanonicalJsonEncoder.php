@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Opus\AuditBundle\Integrity;
 
 use Opus\AuditBundle\Integrity\Exception\NonCanonicalizableValueException;
+use Opus\AuditBundle\Support\CanonicalTimestamp;
 
 /**
  * Deterministic, canonical JSON serialisation for the audit hash-chain.
@@ -120,9 +121,7 @@ final class CanonicalJsonEncoder
     private function normalizeObject(object $value, string $path): mixed
     {
         if ($value instanceof \DateTimeInterface) {
-            return \DateTimeImmutable::createFromInterface($value)
-                ->setTimezone(new \DateTimeZone('UTC'))
-                ->format('Y-m-d\TH:i:s.u\Z');
+            return CanonicalTimestamp::format($value);
         }
 
         if ($value instanceof \BackedEnum) {
