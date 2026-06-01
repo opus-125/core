@@ -1,0 +1,10 @@
+includes:
+    - vendor/phpstan/phpstan-symfony/extension.neon
+
+parameters:
+    level: 8
+    paths:
+        - packages
+        - demo/src
+    excludePaths:
+        - packages/*/tests/*

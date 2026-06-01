@@ -1,0 +1,72 @@
+name: Split packages
+
+# Pushes every package in `packages/` to its own read-only repository.
+# Commits to `main` are mirrored continuously; pushing a git tag (e.g. v0.1.0)
+# mirrors that tag too, which is what Packagist subscribes to for releases.
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+
+env:
+  # A Personal Access Token (or fine-grained token) with `contents: write` on
+  # every target repository. Store it as the `ACCESS_TOKEN` repository secret.
+  GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+
+jobs:
+  split:
+    name: Split ${{ matrix.package.local }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          # local = directory under packages/, split = target repo in opus-125
+          - local: audit-bundle
+            split: audit-bundle
+    steps:
+      - uses: actions/checkout@v4
+
+      # Create the read-only mirror repo on first run so new bundles are
+      # published automatically without any manual setup.
+      - name: Ensure target repository exists
+        env:
+          GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        run: |
+          repo="opus-125/${{ matrix.package.split }}"
+          if gh repo view "$repo" >/dev/null 2>&1; then
+            echo "$repo already exists."
+          else
+            echo "Creating $repo ..."
+            gh repo create "$repo" --public \
+              --description "Read-only split of ${{ matrix.package.local }} from opus-125/core. Do not edit directly." \
+              --homepage "https://github.com/opus-125/core"
+          fi
+
+      # Mirror branch commits (no tag).
+      - name: Split (branch)
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        uses: danharrin/monorepo-split-github-action@v2.4.0
+        with:
+          package_directory: 'packages/${{ matrix.package.local }}'
+          repository_organization: 'opus-125'
+          repository_name: '${{ matrix.package.split }}'
+          branch: main
+          user_name: 'opus-bot'
+          user_email: 'bot@opus-125.dev'
+
+      # Mirror tags so Packagist publishes a new release.
+      - name: Split (tag)
+        if: "startsWith(github.ref, 'refs/tags/')"
+        uses: danharrin/monorepo-split-github-action@v2.4.0
+        with:
+          tag: ${{ github.ref_name }}
+          package_directory: 'packages/${{ matrix.package.local }}'
+          repository_organization: 'opus-125'
+          repository_name: '${{ matrix.package.split }}'
+          branch: main
+          user_name: 'opus-bot'
+          user_email: 'bot@opus-125.dev'

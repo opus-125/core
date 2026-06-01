@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  @apply bg-slate-950 text-slate-200 antialiased;
+}
+
+/* Shiki output: let the highlighter own the background/colors. */
+.shiki {
+  @apply rounded-xl p-4 text-sm leading-relaxed overflow-x-auto border border-white/10;
+}
