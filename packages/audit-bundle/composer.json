@@ -1,19 +1,29 @@
 {
     "name": "opus/audit-bundle",
-    "description": "Audit logging for Symfony applications.",
+    "description": "Tamper-evident audit trail with GDPR-compliant crypto-shredding and retention for Symfony applications.",
     "type": "symfony-bundle",
     "license": "MIT",
-    "keywords": ["symfony", "bundle", "audit", "logging"],
+    "keywords": ["symfony", "bundle", "audit", "audit-trail", "gdpr", "compliance", "crypto-shredding", "doctrine"],
     "homepage": "https://github.com/opus-125/audit-bundle",
     "require": {
         "php": ">=8.4",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.2",
+        "doctrine/orm": "^3.3",
+        "doctrine/persistence": "^3.4 || ^4.0",
+        "psr/clock": "^1.0",
+        "symfony/clock": "^8.0",
         "symfony/config": "^8.0",
+        "symfony/console": "^8.0",
         "symfony/dependency-injection": "^8.0",
-        "symfony/http-kernel": "^8.0"
+        "symfony/http-kernel": "^8.0",
+        "symfony/security-core": "^8.0",
+        "symfony/uid": "^8.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^12.0",
-        "symfony/framework-bundle": "^8.0"
+        "symfony/framework-bundle": "^8.0",
+        "symfony/var-dumper": "^8.0"
     },
     "autoload": {
         "psr-4": {
