@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Opus\AuditBundle\Subject;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Opus\AuditBundle\Actor\Actor;
+use Opus\AuditBundle\Actor\ActorInterface;
 use Opus\AuditBundle\Enum\ActorType;
 use Opus\AuditBundle\Metadata\AuditMetadataFactory;
 use Opus\AuditBundle\Support\EntityIdentifier;
@@ -60,13 +60,16 @@ final class AttributeSubjectResolver implements SubjectResolverInterface
         return array_values(array_unique($subjects));
     }
 
-    public function resolveForActor(Actor $actor): array
+    public function resolveForActor(ActorInterface $actor): array
     {
-        if (null === $actor->id || ActorType::Anonymous === $actor->type || ActorType::System === $actor->type) {
+        $id = $actor->getAuditActorId();
+        $type = $actor->getAuditActorType();
+
+        if (null === $id || ActorType::Anonymous === $type || ActorType::System === $type) {
             return [];
         }
 
-        return [\sprintf('actor:%s:%s', $actor->type->value, $actor->id)];
+        return [\sprintf('actor:%s:%s', $type->value, $id)];
     }
 
     private function entitySubjectId(string $class, string $identifier): string

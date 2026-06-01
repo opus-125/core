@@ -7,7 +7,6 @@ namespace Opus\AuditBundle\Tests\Recording;
 use Opus\AuditBundle\Actor\Actor;
 use Opus\AuditBundle\Crypto\CryptoShredder;
 use Opus\AuditBundle\Model\AuditEntry;
-use Opus\AuditBundle\Model\Schema;
 use Opus\AuditBundle\Tests\Fixtures\Customer;
 use Opus\AuditBundle\Tests\Fixtures\Invoice;
 use Opus\AuditBundle\Tests\Support\AuditIntegrationTestCase;
@@ -21,43 +20,32 @@ final class ActorPiiShreddingTest extends AuditIntegrationTestCase
 {
     public function testActorLabelIsEncryptedAtRestAndDecryptableThenShreddable(): void
     {
-        $this->services->auditContext->runAs(Actor::user('clerk-anna', 'Anna Berger'), function (): void {
+        $this->services->auditContext->runAs(Actor::user('clerk-anna', 'Anna Berger'), static function (): void {
             $customer = new Customer('Acme');
             $invoice = new Invoice($customer, 'Acme');
-            $this->services->transaction->run(static function () use ($customer, $invoice): void {
-                self::$em->persist($customer);
-                self::$em->persist($invoice);
-                self::$em->flush();
-            });
-        });
-
-        // Stored label is not the clear name.
-        $rawLabel = (string) self::$connection->fetchOne(
-            \sprintf('SELECT actor_label FROM %s ORDER BY sequence_no LIMIT 1', Schema::ENTRY_TABLE),
-        );
-        self::assertStringNotContainsString('Anna Berger', $rawLabel);
-
-        // The reader decrypts it for display.
-        $entry = $this->firstEntry();
-        self::assertSame('clerk-anna', $entry->getActorId());
-        self::assertSame('Anna Berger', $this->services->reader->decryptLabel($entry->getActorLabel()));
-
-        // Shredding the actor subject erases the label.
-        $this->services->keyStore->shred('actor:user:clerk-anna');
-        $entry = $this->firstEntry();
-        self::assertSame(CryptoShredder::REDACTED, $this->services->reader->decryptLabel($entry->getActorLabel()));
-    }
-
-    public function testSystemActorHasNoEncryptedLabel(): void
-    {
-        // No runAs, no token → system actor with no subject; nothing to encrypt.
-        $customer = new Customer('Acme');
-        $invoice = new Invoice($customer, 'Acme');
-        $this->services->transaction->run(static function () use ($customer, $invoice): void {
             self::$em->persist($customer);
             self::$em->persist($invoice);
             self::$em->flush();
         });
+
+        $rawLabel = (string) self::$connection->fetchOne('SELECT actor_label FROM audit_entry ORDER BY sequence_no LIMIT 1');
+        self::assertStringNotContainsString('Anna Berger', $rawLabel);
+
+        $entry = $this->firstEntry();
+        self::assertSame('clerk-anna', $entry->getActorId());
+        self::assertSame('Anna Berger', $this->services->normalizer->decryptLabel($entry->getActorLabel()));
+
+        $this->services->keyProvider->shred('actor:user:clerk-anna');
+        self::assertSame(CryptoShredder::REDACTED, $this->services->normalizer->decryptLabel($this->firstEntry()->getActorLabel()));
+    }
+
+    public function testSystemActorHasNoEncryptedLabel(): void
+    {
+        $customer = new Customer('Acme');
+        $invoice = new Invoice($customer, 'Acme');
+        self::$em->persist($customer);
+        self::$em->persist($invoice);
+        self::$em->flush();
 
         self::assertNull($this->firstEntry()->getActorLabel());
     }

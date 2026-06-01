@@ -10,44 +10,45 @@ use Opus\AuditBundle\Crypto\Exception\DecryptionFailedException;
  * Encrypts and decrypts individual sensitive values as self-describing
  * envelopes, and renders unrecoverable (shredded) values as a placeholder.
  *
- * An envelope is a small JSON-able structure embedded in the audit `changes`
- * map in place of a `#[Sensitive]` value. It records the subject set and the
- * ciphertext, so decryption later needs nothing but the keystore. When the
- * required key has been shredded, decryption yields {@see REDACTED} instead of
- * the cleartext — the GDPR-erased state — while the ciphertext bytes (and thus
- * the hash-chain) stay intact.
+ * An envelope replaces a `#[Sensitive]` value inside the audit `changes` map (or
+ * the actor label). It records the subject set and ciphertext, so decryption
+ * later needs only the {@see SubjectKeyProviderInterface}. When a required
+ * key has been shredded, decryption yields {@see REDACTED} — the GDPR-erased
+ * state — while the ciphertext bytes (and thus the hash-chain) stay intact.
+ *
+ * Multi-subject values are encrypted under a key combined from *all* their
+ * subjects' keys, so shredding any one of them erases the value.
  */
 final class CryptoShredder
 {
-    /**
-     * What a value decrypts to once its subject has been crypto-shredded.
-     */
     public const string REDACTED = '[redacted: erased]';
 
-    /**
-     * Marker key identifying an encryption envelope inside the changes map.
-     */
     private const string ENVELOPE_MARKER = '__opus_enc';
     private const int ENVELOPE_VERSION = 1;
     private const string ALGORITHM = 'xchacha20poly1305-ietf';
 
     public function __construct(
-        private readonly KeyStoreInterface $keyStore,
+        private readonly SubjectKeyProviderInterface $keyProvider,
         private readonly Cipher $cipher,
     ) {
     }
 
     /**
-     * Encrypt a value for the given data subjects, returning an envelope.
+     * Encrypt a value for the given data subjects, returning an envelope. If a
+     * subject is already shredded the value is stored pre-redacted.
      *
      * @param list<string> $subjectIds
      *
-     * @return array<string, mixed> the envelope (JSON-able)
+     * @return array<string, mixed>
      */
     public function encryptValue(mixed $value, array $subjectIds): array
     {
         $subjects = $this->normaliseSubjects($subjectIds);
-        $key = $this->keyStore->deriveEncryptionKey($subjects);
+        $key = $this->combinedKey($subjects);
+
+        if (null === $key) {
+            return [self::ENVELOPE_MARKER => self::ENVELOPE_VERSION, 'subjects' => $subjects, 'redacted' => true];
+        }
 
         $plaintext = json_encode($value, \JSON_THROW_ON_ERROR);
         $blob = $this->cipher->encrypt($key, $plaintext, $this->aad($subjects));
@@ -61,8 +62,7 @@ final class CryptoShredder
     }
 
     /**
-     * Decrypt an envelope back to its value, or {@see REDACTED} if the subject's
-     * key has been shredded (or the ciphertext can no longer be authenticated).
+     * Decrypt an envelope, or {@see REDACTED} if its subject has been shredded.
      *
      * @param array<string, mixed> $envelope
      */
@@ -72,10 +72,13 @@ final class CryptoShredder
             throw new \InvalidArgumentException('Value is not an encryption envelope.');
         }
 
+        if (($envelope['redacted'] ?? false) || !isset($envelope['ct'])) {
+            return self::REDACTED;
+        }
+
         /** @var list<string> $subjects */
         $subjects = $envelope['subjects'];
-        $key = $this->keyStore->deriveDecryptionKey($subjects);
-
+        $key = $this->combinedKey($subjects);
         if (null === $key) {
             return self::REDACTED;
         }
@@ -88,23 +91,37 @@ final class CryptoShredder
         try {
             $plaintext = $this->cipher->decrypt($key, $blob, $this->aad($subjects));
         } catch (DecryptionFailedException) {
-            // Key was re-provisioned after a shred, or the ciphertext is gone:
-            // the value is, for all intents, erased.
             return self::REDACTED;
         }
 
         return json_decode($plaintext, true, 512, \JSON_THROW_ON_ERROR);
     }
 
-    /**
-     * Whether a value in the changes map is an encryption envelope.
-     */
     public static function isEnvelope(mixed $value): bool
     {
         return \is_array($value)
             && \array_key_exists(self::ENVELOPE_MARKER, $value)
-            && isset($value['subjects'], $value['ct'])
+            && isset($value['subjects'])
             && \is_array($value['subjects']);
+    }
+
+    /**
+     * Combine the subjects' keys into one value key, or null if any is shredded.
+     *
+     * @param list<string> $subjects
+     */
+    private function combinedKey(array $subjects): ?string
+    {
+        $keys = [];
+        foreach ($subjects as $subjectId) {
+            $key = $this->keyProvider->keyForSubject($subjectId);
+            if (null === $key) {
+                return null;
+            }
+            $keys[] = $key;
+        }
+
+        return hash_hkdf('sha256', implode('', $keys), Cipher::KEY_BYTES, 'opus-audit-value');
     }
 
     /**

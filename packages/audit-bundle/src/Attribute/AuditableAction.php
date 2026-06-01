@@ -5,29 +5,33 @@ declare(strict_types=1);
 namespace Opus\AuditBundle\Attribute;
 
 /**
- * Mark a method as a non-mutating, auditable action (Spine).
+ * Mark a method as a non-mutating, auditable action (a read, download, export,
+ * view, …) to be recorded as an audit entry with no field changes.
  *
- * Reads, downloads, exports, access attempts — vendor-relevant events that do
- * not change entity state. These are recorded in the lighter, append-only
- * `audit_event` table rather than the gapless, hash-chained `audit_entry`
- * stream: read traffic is high-volume, and funnelling it through the per-stream
- * head lock would serialise every hot read and destroy read performance.
- *
- * The attribute names the action; recording it is the application's call (via
- * {@see \Opus\AuditBundle\Recording\AuditEventRecorder}) so that an event is
- * logged only *after* the action actually succeeded.
+ * The action name is optional: by default it is derived from the method name
+ * with a trailing `Action`/`action` stripped, so `downloadAction()` records
+ * `download`. Pass an explicit name to override.
  */
 #[\Attribute(\Attribute::TARGET_METHOD)]
 final readonly class AuditableAction
 {
     public function __construct(
-        /**
-         * The action name stored on the event, e.g. `'download'`, `'export'`.
-         */
-        public string $name,
+        public ?string $name = null,
     ) {
-        if ('' === trim($name)) {
-            throw new \InvalidArgumentException('Auditable action name must not be empty.');
+        if (null !== $name && '' === trim($name)) {
+            throw new \InvalidArgumentException('Auditable action name, when given, must not be empty.');
         }
+    }
+
+    /**
+     * Resolve the effective action name for the method it annotates.
+     */
+    public function resolveName(string $methodName): string
+    {
+        if (null !== $this->name) {
+            return $this->name;
+        }
+
+        return preg_replace('/Action$/i', '', $methodName) ?: $methodName;
     }
 }

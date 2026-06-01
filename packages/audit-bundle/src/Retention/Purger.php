@@ -4,138 +4,78 @@ declare(strict_types=1);
 
 namespace Opus\AuditBundle\Retention;
 
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\ParameterType;
-use Opus\AuditBundle\Model\Schema;
-use Opus\AuditBundle\Support\CanonicalTimestamp;
+use Doctrine\ORM\EntityManagerInterface;
+use Opus\AuditBundle\Model\AbstractAuditEntry;
 use Psr\Clock\ClockInterface;
-use Symfony\Component\Uid\Uuid;
 
 /**
- * Removes audit entries that have outlived their statutory retention.
+ * Deletes audit entries that have outlived their retention.
  *
- * Purge drops a contiguous block at the *start* of a stream's chain: it walks
- * from the earliest entry and removes the leading run whose entries are all past
- * retention, stopping at the first entry that must be kept — within retention,
- * under a legal hold, or belonging to a class with no policy ("keep forever").
+ * Retention is resolved per target entity class via the
+ * {@see RetentionPolicyInterface}; entries of a class with no policy are kept
+ * forever (the conservative default). Deletion uses a DQL bulk delete — still
+ * Doctrine, portable across platforms.
  *
- * Before deleting, it writes a **genesis seal** capturing the head hash of the
- * last purged entry, so the remaining chain stays verifiable from its new
- * beginning. Honest limitation: across a purge boundary "nothing was omitted"
- * is no longer provable — only the surviving chain is. The whole operation runs
- * in one transaction.
- *
- * Retention bounds *purge* of whole entries; it is independent of
- * crypto-shredding, which erases personal content on request while keeping the
- * record for the retention period.
+ * Honest note: purging the oldest entries leaves the surviving chain unable to
+ * prove "nothing before this was omitted"; the remaining chain stays verifiable
+ * from its new start.
  */
 final class Purger
 {
+    /**
+     * @param class-string<AbstractAuditEntry> $entryClass
+     */
     public function __construct(
-        private readonly Connection $connection,
+        private readonly EntityManagerInterface $entityManager,
         private readonly RetentionPolicyInterface $policy,
         private readonly ClockInterface $clock,
+        private readonly string $entryClass,
     ) {
     }
 
-    public function purge(string $streamId, ?\DateTimeImmutable $now = null): PurgeReport
+    /**
+     * Purge expired entries across all target classes. Returns the number of
+     * entries removed.
+     */
+    public function purge(?\DateTimeImmutable $now = null): int
     {
         $now ??= \DateTimeImmutable::createFromInterface($this->clock->now());
+        $removed = 0;
 
-        return $this->connection->transactional(function () use ($streamId, $now): PurgeReport {
-            $boundary = $this->findPurgeBoundary($streamId, $now);
-
-            if (null === $boundary) {
-                return new PurgeReport($streamId, 0, null);
+        foreach ($this->targetClasses() as $entityClass) {
+            $interval = $this->policy->retentionFor($entityClass);
+            if (null === $interval) {
+                continue;
             }
 
-            [$lastSequence, $headHash] = $boundary;
+            $removed += (int) $this->entityManager->createQuery(
+                \sprintf('DELETE FROM %s e WHERE e.entityClass = :class AND e.occurredAt < :cutoff', $this->entryClass),
+            )
+                ->setParameter('class', $entityClass)
+                ->setParameter('cutoff', $now->sub($interval))
+                ->execute();
+        }
 
-            // Anchor the remaining chain with a genesis seal before deleting.
-            $this->connection->insert(Schema::SEAL_TABLE, [
-                'id' => Uuid::v7()->toRfc4122(),
-                'stream_id' => $streamId,
-                'last_sequence' => $lastSequence,
-                'head_hash' => $headHash,
-                'sealed_at' => CanonicalTimestamp::format($now),
-                'genesis' => true,
-            ], [
-                'last_sequence' => ParameterType::INTEGER,
-                'genesis' => ParameterType::BOOLEAN,
-            ]);
-
-            $purged = (int) $this->connection->executeStatement(
-                \sprintf('DELETE FROM %s WHERE stream_id = :s AND sequence_no <= :seq', Schema::ENTRY_TABLE),
-                ['s' => $streamId, 'seq' => $lastSequence],
-                ['seq' => ParameterType::INTEGER],
-            );
-
-            return new PurgeReport($streamId, $purged, $lastSequence);
-        });
+        return $removed;
     }
 
     /**
-     * @return list<PurgeReport>
+     * @return list<class-string>
      */
-    public function purgeAll(?\DateTimeImmutable $now = null): array
+    private function targetClasses(): array
     {
-        /** @var list<string> $streams */
-        $streams = $this->connection->fetchFirstColumn(
-            \sprintf('SELECT DISTINCT stream_id FROM %s ORDER BY stream_id', Schema::ENTRY_TABLE),
-        );
+        /** @var list<array{entityClass: string|null}> $rows */
+        $rows = $this->entityManager->createQuery(
+            \sprintf('SELECT DISTINCT e.entityClass AS entityClass FROM %s e', $this->entryClass),
+        )->getArrayResult();
 
-        return array_map(fn (string $stream): PurgeReport => $this->purge($stream, $now), $streams);
-    }
-
-    /**
-     * The sequence (and head hash) of the last entry eligible for purging, or
-     * null if nothing may be purged.
-     *
-     * @return array{int, string}|null
-     */
-    private function findPurgeBoundary(string $streamId, \DateTimeImmutable $now): ?array
-    {
-        $cutoffCache = [];
-        $boundary = null;
-
-        $rows = $this->connection->iterateAssociative(
-            \sprintf('SELECT sequence_no, occurred_at, entity_class, legal_hold, hash FROM %s WHERE stream_id = :s ORDER BY sequence_no ASC', Schema::ENTRY_TABLE),
-            ['s' => $streamId],
-        );
-
+        $classes = [];
         foreach ($rows as $row) {
-            if ($this->isTruthy($row['legal_hold'])) {
-                break;
+            if (null !== $row['entityClass'] && class_exists($row['entityClass'])) {
+                $classes[] = $row['entityClass'];
             }
-
-            $class = (string) $row['entity_class'];
-            $cutoff = $cutoffCache[$class] ??= $this->cutoffFor($class, $now);
-
-            if (null === $cutoff || (string) $row['occurred_at'] >= $cutoff) {
-                break;
-            }
-
-            $boundary = [(int) $row['sequence_no'], (string) $row['hash']];
         }
 
-        return $boundary;
-    }
-
-    private function cutoffFor(string $entityClass, \DateTimeImmutable $now): ?string
-    {
-        /** @var class-string $entityClass */
-        $interval = $this->policy->retentionFor($entityClass);
-
-        if (null === $interval) {
-            return null;
-        }
-
-        // Entries strictly older than this canonical instant may be purged.
-        return CanonicalTimestamp::format($now->sub($interval));
-    }
-
-    private function isTruthy(mixed $value): bool
-    {
-        return \in_array($value, [true, 't', '1', 1], true);
+        return $classes;
     }
 }

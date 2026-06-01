@@ -37,6 +37,8 @@ final class DoctrineAuditListener
         $em = $args->getObjectManager();
         $uow = $em->getUnitOfWork();
 
+        $this->recorder->reset();
+
         $work = $this->collectEntityWork($uow, $em);
         $this->collectCollectionWork($uow, $em, $work);
 

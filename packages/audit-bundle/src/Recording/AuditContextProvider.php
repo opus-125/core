@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Opus\AuditBundle\Recording;
 
 use Opus\AuditBundle\Actor\Actor;
+use Opus\AuditBundle\Actor\ActorInterface;
 use Opus\AuditBundle\Actor\AuditContext;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -30,11 +31,12 @@ final class AuditContextProvider
     /**
      * @return array{0: array<string, mixed>, 1: array<string, scalar>} [public, sensitive]
      */
-    public function gather(Actor $actor): array
+    public function gather(ActorInterface $actor): array
     {
         $public = $this->context->toArray();
 
-        foreach ($actor->attributes as $key => $value) {
+        $attributes = $actor instanceof Actor ? $actor->attributes : [];
+        foreach ($attributes as $key => $value) {
             if ('' !== (string) $value) {
                 $public[$key] = $value;
             }

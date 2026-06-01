@@ -2,43 +2,32 @@
 
 declare(strict_types=1);
 
-use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityManagerInterface;
 use Opus\AuditBundle\Actor\ActorResolverInterface;
 use Opus\AuditBundle\Actor\AuditContext;
 use Opus\AuditBundle\Actor\SecurityActorResolver;
-use Opus\AuditBundle\Command\ExportCommand;
 use Opus\AuditBundle\Command\PurgeCommand;
-use Opus\AuditBundle\Command\SealCommand;
-use Opus\AuditBundle\Command\VerifyCommand;
 use Opus\AuditBundle\Crypto\Cipher;
 use Opus\AuditBundle\Crypto\CryptoShredder;
-use Opus\AuditBundle\Crypto\DoctrineKeyStore;
-use Opus\AuditBundle\Crypto\KeyStoreFactory;
-use Opus\AuditBundle\Crypto\KeyStoreInterface;
-use Opus\AuditBundle\Export\AuditExporter;
+use Opus\AuditBundle\Crypto\DerivedSubjectKeyProvider;
+use Opus\AuditBundle\Crypto\SubjectKeyProviderInterface;
 use Opus\AuditBundle\Integrity\CanonicalJsonEncoder;
-use Opus\AuditBundle\Integrity\ChainBackendInterface;
-use Opus\AuditBundle\Integrity\ChainVerifier;
 use Opus\AuditBundle\Integrity\HashCalculator;
-use Opus\AuditBundle\Integrity\PostgresAdvisoryLock;
-use Opus\AuditBundle\Integrity\PostgresHashChain;
+use Opus\AuditBundle\Integrity\NullStreamLock;
 use Opus\AuditBundle\Integrity\StreamLockInterface;
 use Opus\AuditBundle\Metadata\AuditMetadataFactory;
 use Opus\AuditBundle\Metadata\FieldSanitizer;
-use Opus\AuditBundle\Reading\AuditEntryReader;
 use Opus\AuditBundle\Recording\ActorContextEncryptor;
 use Opus\AuditBundle\Recording\AuditContextProvider;
-use Opus\AuditBundle\Recording\AuditEventRecorder;
 use Opus\AuditBundle\Recording\AuditRecorder;
 use Opus\AuditBundle\Recording\ChangeSetNormalizer;
 use Opus\AuditBundle\Recording\DoctrineAuditListener;
 use Opus\AuditBundle\Retention\AttributeRetentionPolicy;
 use Opus\AuditBundle\Retention\Purger;
 use Opus\AuditBundle\Retention\RetentionPolicyInterface;
-use Opus\AuditBundle\Sealing\Sealer;
+use Opus\AuditBundle\Serializer\AuditEntryNormalizer;
 use Opus\AuditBundle\Subject\AttributeSubjectResolver;
 use Opus\AuditBundle\Subject\SubjectResolverInterface;
-use Opus\AuditBundle\Transaction\AuditTransaction;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\Clock\NativeClock;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -63,33 +52,18 @@ return static function (ContainerConfigurator $container): void {
     $services->set(AuditMetadataFactory::class);
     $services->set(AuditContext::class);
 
-    // --- Integrity backend -------------------------------------------------
-    $services->set(PostgresAdvisoryLock::class)
-        ->args([service(Connection::class)]);
-    $services->alias(StreamLockInterface::class, PostgresAdvisoryLock::class);
-
-    $services->set(PostgresHashChain::class)
-        ->args([
-            service(Connection::class),
-            service(StreamLockInterface::class),
-            service(HashCalculator::class),
-            service(CanonicalJsonEncoder::class),
-        ]);
-    $services->alias(ChainBackendInterface::class, PostgresHashChain::class);
-
-    $services->set(ChainVerifier::class)
-        ->args([service(ChainBackendInterface::class), service(Connection::class)]);
+    // --- Per-stream lock (no-op by default; DB-agnostic) -------------------
+    $services->set(NullStreamLock::class);
+    $services->alias(StreamLockInterface::class, NullStreamLock::class);
 
     // --- Crypto-shredding --------------------------------------------------
-    $services->set(DoctrineKeyStore::class)
-        ->factory([KeyStoreFactory::class, 'createDoctrine'])
+    $services->set(DerivedSubjectKeyProvider::class)
         ->args([
-            service(Connection::class),
-            service(Cipher::class),
+            '%kernel.secret%',
+            service(EntityManagerInterface::class),
             service(ClockInterface::class),
-            '%opus_audit.kek%',
         ]);
-    $services->alias(KeyStoreInterface::class, DoctrineKeyStore::class);
+    $services->alias(SubjectKeyProviderInterface::class, DerivedSubjectKeyProvider::class);
     $services->set(CryptoShredder::class);
 
     // --- Resolvers ---------------------------------------------------------
@@ -105,26 +79,23 @@ return static function (ContainerConfigurator $container): void {
     $services->set(ActorContextEncryptor::class);
     $services->set(AuditContextProvider::class)
         ->args([service(AuditContext::class), service('request_stack')->nullOnInvalid()]);
-    $services->set(AuditRecorder::class);
-    $services->set(AuditEventRecorder::class);
+
+    $services->set(AuditRecorder::class)
+        ->arg('$entryClass', '%opus_audit.entry_class%');
 
     $services->set(DoctrineAuditListener::class)
         ->tag('doctrine.event_listener', ['event' => 'onFlush']);
 
-    // --- Lifecycle & access ------------------------------------------------
-    $services->set(AuditTransaction::class)
-        ->args([service(Connection::class)]);
-    $services->set(AuditEntryReader::class);
-    $services->set(Sealer::class);
+    // --- Read / export -----------------------------------------------------
+    $services->set(AuditEntryNormalizer::class);
+
+    // --- Retention ---------------------------------------------------------
     $services->set(AttributeRetentionPolicy::class)
         ->args([service(AuditMetadataFactory::class), '%opus_audit.retention.default%']);
     $services->alias(RetentionPolicyInterface::class, AttributeRetentionPolicy::class);
-    $services->set(Purger::class);
-    $services->set(AuditExporter::class);
+    $services->set(Purger::class)
+        ->arg('$entryClass', '%opus_audit.entry_class%');
 
-    // --- Console commands --------------------------------------------------
-    $services->set(VerifyCommand::class);
-    $services->set(SealCommand::class);
+    // --- Console -----------------------------------------------------------
     $services->set(PurgeCommand::class);
-    $services->set(ExportCommand::class);
 };

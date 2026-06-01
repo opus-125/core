@@ -128,24 +128,20 @@ export function App() {
 
         <Section id="audit-bundle" title="AuditBundle">
           <p>
-            <Code>opus/audit-bundle</Code> is a tamper-evident audit trail with GDPR-compliant
-            crypto-shredding and retention — the shared compliance spine for public-sector software.
-            Behaviour is declared on entities with attributes; configuration is infrastructure only.
+            <Code>opus/audit-bundle</Code> is audit logging for Symfony with Doctrine: it records who
+            changed what, keeps the trail tamper-evident, and can encrypt personal fields so they can
+            be erased on request (GDPR Art. 17) while the rest of the record is kept. You declare what
+            to audit with attributes; configuration is infrastructure only.
           </p>
           <p>
-            The <strong>Spine</strong> (default-on) records every create/update/delete of an{' '}
-            <Code>#[Auditable]</Code> entity through a Doctrine listener into a linear SHA-256
-            hash-chain with gapless, per-stream sequence numbers — so any later tampering is
-            detectable by <Code>audit:verify</Code>. <Code>#[Sensitive]</Code> fields are encrypted
-            per data subject; erasing a person (GDPR Art. 17) destroys their key, leaving the
-            ciphertext — and therefore the chain — intact while the personal content becomes
-            permanently unreadable. <Code>#[Retention]</Code> bounds how long entries are kept.
-          </p>
-          <p>
-            Escalation tiers — versioning (E1), Merkle integrity (E2), qualified signatures (E3,
-            eIDAS / ID Austria) and trigger-level capture (E4) — are opt-in and independent; you pay
-            for none of them until you switch them on. See{' '}
-            <Code>packages/audit-bundle/docs/index.md</Code> for the full guide.
+            A Doctrine <Code>onFlush</Code> listener writes a normal <Code>AuditEntry</Code> for every
+            create/update/delete of an <Code>#[Auditable]</Code> entity (including collection changes),
+            in the same flush as your change. Each entry chains onto its predecessor's hash, so
+            tampering with the stored log is detectable. <Code>#[Sensitive]</Code> fields are encrypted
+            per data subject — shredding the subject renders them unreadable while the record and chain
+            stay intact — and <Code>#[Retention]</Code> bounds how long entries are kept. It works on
+            any Doctrine DBAL platform. See <Code>packages/audit-bundle/docs/index.md</Code> for the
+            full guide.
           </p>
           <p>
             Source &amp; issues:{' '}

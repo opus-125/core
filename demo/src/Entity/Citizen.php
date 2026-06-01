@@ -9,11 +9,11 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * A citizen — the data subject an {@see Antrag} concerns. Not itself audited.
+ * A citizen — the data subject an {@see Application} concerns. Not itself audited.
  */
 #[ORM\Entity]
-#[ORM\Table(name: 'buerger')]
-class Buerger
+#[ORM\Table(name: 'citizen')]
+class Citizen
 {
     #[ORM\Id]
     #[ORM\Column(type: 'guid')]

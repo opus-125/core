@@ -1,8 +1,8 @@
 opus_audit:
-    # Master key (KEK) for crypto-shredding. In production keep this in a secret
-    # store / vault, never in the repository.
-    kek: '%env(OPUS_AUDIT_KEK)%'
-
     # No global auto-purge default; entities opt in via #[Retention(...)].
     retention:
         default: null
+
+    # The crypto-shredding key is derived from the Symfony application secret
+    # (APP_SECRET) by default — nothing else to configure. Override the
+    # SubjectKeyProviderInterface service to use stored per-subject keys instead.

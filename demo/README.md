@@ -9,45 +9,32 @@ so changes under `../packages/*` are picked up immediately — no publishing req
 ## Prerequisites
 
 - PHP 8.4+ with `pdo_pgsql` and `sodium`
-- A PostgreSQL database (the `audit-bundle` targets PostgreSQL)
+- A database supported by Doctrine (the demo uses PostgreSQL)
 
-Point `DATABASE_URL` and `OPUS_AUDIT_KEK` in [`.env`](.env) at your setup. Generate
-a master key with:
+Point `DATABASE_URL` in [`.env`](.env) at your database. The audit bundle derives
+its crypto-shredding key from `APP_SECRET`.
 
-```bash
-php -r "echo base64_encode(random_bytes(32)).PHP_EOL;"
-```
-
-## The audit demo
+## Run the web demo
 
 ```bash
 cd demo
 composer install
-php bin/console app:demo
+php bin/console app:setup          # create schema + seed sample data
+php -S 127.0.0.1:8000 -t public    # or: symfony serve
 ```
 
-`app:demo` recreates the schema and then walks through the Spine:
+Open <http://127.0.0.1:8000/>:
 
-1. records three changes to an `Antrag` (application) as the clerk *Anna Berger*;
-2. prints the decrypted audit trail;
-3. verifies the hash-chain is intact;
-4. crypto-shreds the applicant (GDPR Art. 17) — the sensitive note becomes
-   `[redacted: erased]` while the non-personal metadata and the chain stay valid.
-
-Then try the bundle's own commands:
-
-```bash
-php bin/console audit:verify                              # CI-friendly exit code
-php bin/console audit:seal                                # checkpoint the heads
-php bin/console audit:export --stream=antrag --format=json
-php bin/console audit:purge --force                       # honours retention + holds
-```
+- each application shows its **audit trail**;
+- change the **status** or **note** and the trail grows (attributed to the
+  clerk "Anna Berger");
+- the note is `#[Sensitive]` — **Shred applicant** erases it (it shows
+  `[redacted: erased]`) while the rest of the trail stays intact.
 
 ## How it is wired
 
-Standard DoctrineBundle, nothing special: Doctrine is configured in
+Standard DoctrineBundle: Doctrine is configured in
 [`config/packages/doctrine.yaml`](config/packages/doctrine.yaml) and the audit
 bundle in [`config/packages/opus_audit.yaml`](config/packages/opus_audit.yaml).
-The bundle registers its own entity mappings and its `onFlush` listener
-automatically, so there is no glue code — the demo's `src/` contains only the
-domain entities and the `app:demo` command.
+The bundle registers its entity mapping and `onFlush` listener automatically, so
+`src/` contains only the domain entities, a controller and a setup command.

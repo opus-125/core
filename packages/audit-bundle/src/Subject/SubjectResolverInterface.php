@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Opus\AuditBundle\Subject;
 
-use Opus\AuditBundle\Actor\Actor;
+use Opus\AuditBundle\Actor\ActorInterface;
 
 /**
  * Resolves the data subject identifiers whose keys protect a record's sensitive
@@ -30,5 +30,5 @@ interface SubjectResolverInterface
      * @return list<string> subject ids for the actor (empty for non-personal
      *                      actors such as system/anonymous)
      */
-    public function resolveForActor(Actor $actor): array;
+    public function resolveForActor(ActorInterface $actor): array;
 }

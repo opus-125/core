@@ -12,13 +12,13 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
  * Default {@see ActorResolverInterface}.
  *
  * Resolution order:
- *  1. an explicit {@see AuditContext} override (CLI/Messenger `runAs`);
- *  2. the security token, if present — recognising impersonation
- *     (a switch-user token) and crediting the *impersonator* as the actor while
- *     noting whom they acted as;
+ *  1. an explicit {@see AuditContext} actor (CLI/Messenger via `runAs`);
+ *  2. the security token — if the user already implements {@see ActorInterface}
+ *     it is used directly; impersonation (a switch-user token) credits the
+ *     impersonator while noting whom they acted as;
  *  3. otherwise a system actor.
  *
- * Impersonation is detected by duck-typing `getOriginalToken()` so the bundle
+ * Impersonation is detected by duck-typing `getOriginalToken()`, so the bundle
  * need not depend on symfony/security-http.
  */
 final class SecurityActorResolver implements ActorResolverInterface
@@ -29,7 +29,7 @@ final class SecurityActorResolver implements ActorResolverInterface
     ) {
     }
 
-    public function resolve(): Actor
+    public function resolve(): ActorInterface
     {
         $override = $this->context->currentActor();
         if (null !== $override) {
@@ -44,7 +44,7 @@ final class SecurityActorResolver implements ActorResolverInterface
         return Actor::system();
     }
 
-    private function fromToken(TokenInterface $token): Actor
+    private function fromToken(TokenInterface $token): ActorInterface
     {
         if (method_exists($token, 'getOriginalToken')) {
             $original = $token->getOriginalToken();
@@ -53,17 +53,16 @@ final class SecurityActorResolver implements ActorResolverInterface
                 if (null !== $impersonator) {
                     $id = $impersonator->getUserIdentifier();
 
-                    return new Actor(
-                        ActorType::User,
-                        $id,
-                        $id,
-                        ['impersonating' => $token->getUser()?->getUserIdentifier() ?? ''],
-                    );
+                    return new Actor(ActorType::User, $id, $id, ['impersonating' => $token->getUser()?->getUserIdentifier() ?? '']);
                 }
             }
         }
 
         $user = $token->getUser();
+        if ($user instanceof ActorInterface) {
+            return $user;
+        }
+
         if (null !== $user) {
             $id = $user->getUserIdentifier();
 

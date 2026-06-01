@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Opus AuditBundle — demo</h1>
+    <p class="muted">
+        Change a field below and watch the audit trail grow. The note is
+        <code>#[Sensitive]</code> (encrypted at rest); shredding the applicant
+        erases it while the trail stays intact.
+    </p>
+
+    {% for row in applications %}
+        {% set application = row.entity %}
+        <div class="card">
+            <strong>{{ application.subject }}</strong>
+            — status: <code>{{ application.status }}</code>
+            <br>
+            <span class="muted">Applicant: {{ application.applicant.name }}</span>
+
+            <form method="post" action="{{ path('app_update', { id: application.id }) }}">
+                <input type="text" name="status" placeholder="new status">
+                <input type="text" name="note" placeholder="new note">
+                <button type="submit">Save</button>
+            </form>
+            <form method="post" action="{{ path('app_shred', { id: application.applicant.id }) }}">
+                <button type="submit">Shred applicant (GDPR Art. 17)</button>
+            </form>
+
+            <table>
+                <thead>
+                    <tr><th>#</th><th>action</th><th>actor</th><th>changes</th></tr>
+                </thead>
+                <tbody>
+                {% for entry in row.trail %}
+                    <tr>
+                        <td>{{ entry.sequence_no }}</td>
+                        <td>{{ entry.action }}</td>
+                        <td>{{ entry.actor_label ?? entry.actor_type }}</td>
+                        <td>
+                            {% for field, diff in entry.changes %}
+                                {% set value = diff.new is defined ? diff.new : diff %}
+                                <div>
+                                    <code>{{ field }}</code>:
+                                    {% if value == '[redacted: erased]' %}
+                                        <span class="redacted">{{ value }}</span>
+                                    {% else %}
+                                        {{ value is iterable ? value|json_encode : value }}
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="4" class="muted">No entries yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No applications. Run <code>php bin/console app:setup</code> first.</p>
+    {% endfor %}
+{% endblock %}

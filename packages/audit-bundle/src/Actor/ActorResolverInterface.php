@@ -14,5 +14,5 @@ namespace Opus\AuditBundle\Actor;
  */
 interface ActorResolverInterface
 {
-    public function resolve(): Actor;
+    public function resolve(): ActorInterface;
 }

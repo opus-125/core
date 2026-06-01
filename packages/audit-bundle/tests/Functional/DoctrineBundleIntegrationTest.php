@@ -8,14 +8,11 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Opus\AuditBundle\Model\AuditEntry;
-use Opus\AuditBundle\Model\AuditEvent;
-use Opus\AuditBundle\Model\AuditSeal;
-use Opus\AuditBundle\Model\CryptoKey;
+use Opus\AuditBundle\Model\ShreddedSubject;
 use Opus\AuditBundle\OpusAuditBundle;
 use Opus\AuditBundle\Tests\Fixtures\Customer;
 use Opus\AuditBundle\Tests\Fixtures\Invoice;
 use Opus\AuditBundle\Tests\Fixtures\Tag;
-use Opus\AuditBundle\Transaction\AuditTransaction;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
@@ -42,8 +39,6 @@ final class DoctrineBundleIntegrationTest extends TestCase
 
     protected function setUp(): void
     {
-        // Snapshot the active handlers so the booted kernel's handlers can be
-        // unwound in tearDown (otherwise PHPUnit flags the test risky).
         $this->baselineExceptionHandler = set_exception_handler(null);
         restore_exception_handler();
         $this->baselineErrorHandler = set_error_handler(static fn (): bool => false);
@@ -70,23 +65,17 @@ final class DoctrineBundleIntegrationTest extends TestCase
         self::assertInstanceOf(EntityManagerInterface::class, $em);
         $this->resetSchema($em);
 
-        $transaction = $container->get('opus_test.tx');
-        self::assertInstanceOf(AuditTransaction::class, $transaction);
-
         $customer = new Customer('Müller GmbH');
         $invoice = new Invoice($customer, 'Müller GmbH');
-
-        $transaction->run(static function () use ($em, $customer, $invoice): void {
-            $em->persist($customer);
-            $em->persist($invoice);
-            $em->flush();
-        });
+        $em->persist($customer);
+        $em->persist($invoice);
+        $em->flush();
 
         $em->clear();
-        $entries = $em->getRepository(AuditEntry::class)->findBy(['streamId' => 'rechnung']);
+        $entries = $em->getRepository(AuditEntry::class)->findBy(['stream' => 'rechnung']);
 
         self::assertCount(1, $entries, 'the auto-registered onFlush listener must have recorded the change');
-        self::assertSame('create', $entries[0]->getAction()->value);
+        self::assertSame('create', $entries[0]->getAction());
     }
 
     private function boot(): ContainerInterface
@@ -95,10 +84,9 @@ final class DoctrineBundleIntegrationTest extends TestCase
 
         try {
             $this->kernel->boot();
-            $container = $this->kernel->getContainer();
-            $probe = $container->get('opus_test.em');
-            self::assertInstanceOf(EntityManagerInterface::class, $probe);
-            $probe->getConnection()->executeQuery('SELECT 1');
+            $em = $this->kernel->getContainer()->get('opus_test.em');
+            self::assertInstanceOf(EntityManagerInterface::class, $em);
+            $em->getConnection()->executeQuery('SELECT 1');
         } catch (\Throwable $e) {
             self::markTestSkipped('PostgreSQL is not available: '.$e->getMessage());
         }
@@ -131,8 +119,7 @@ final class DoctrineBundleIntegrationTest extends TestCase
     {
         $tool = new SchemaTool($em);
         $classes = array_map($em->getClassMetadata(...), [
-            AuditEntry::class, AuditEvent::class, AuditSeal::class, CryptoKey::class,
-            Customer::class, Invoice::class, Tag::class,
+            AuditEntry::class, ShreddedSubject::class, Customer::class, Invoice::class, Tag::class,
         ]);
         $tool->dropSchema($classes);
         $tool->createSchema($classes);
@@ -153,8 +140,6 @@ final class AuditKernel extends BaseKernel
 
     public function getProjectDir(): string
     {
-        // Pin the project dir to a temp location so Symfony's generated
-        // config/reference.php never lands inside the bundle's source tree.
         return $this->getCacheDir();
     }
 
@@ -173,7 +158,7 @@ final class AuditKernel extends BaseKernel
         $dsn = getenv('OPUS_AUDIT_TEST_DSN') ?: 'postgresql://postgres@127.0.0.1:5432/opus_audit_test';
 
         $container->extension('framework', [
-            'secret' => 'test',
+            'secret' => 'test-secret',
             'http_method_override' => false,
             'handle_all_throwables' => true,
             'php_errors' => ['log' => false],
@@ -194,14 +179,9 @@ final class AuditKernel extends BaseKernel
             ],
         ]);
 
-        $container->extension('opus_audit', [
-            'kek' => base64_encode(str_repeat("\x07", 32)),
-        ]);
+        $container->extension('opus_audit', []);
 
-        // Keep the two services the test fetches reachable (public).
-        $services = $container->services();
-        $services->alias('opus_test.em', EntityManagerInterface::class)->public();
-        $services->alias('opus_test.tx', AuditTransaction::class)->public();
+        $container->services()->alias('opus_test.em', EntityManagerInterface::class)->public();
     }
 
     private function configureRoutes(RoutingConfigurator $routes): void

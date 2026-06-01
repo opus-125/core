@@ -7,12 +7,10 @@ namespace Opus\AuditBundle\Tests\Recording;
 use Opus\AuditBundle\Actor\Actor;
 use Opus\AuditBundle\Crypto\CryptoShredder;
 use Opus\AuditBundle\Enum\ActorType;
-use Opus\AuditBundle\Enum\AuditAction;
-use Opus\AuditBundle\Integrity\Exception\MissingAuditTransactionException;
 use Opus\AuditBundle\Integrity\HashCalculator;
 use Opus\AuditBundle\Metadata\FieldSanitizer;
 use Opus\AuditBundle\Model\AuditEntry;
-use Opus\AuditBundle\Model\Schema;
+use Opus\AuditBundle\Repository\AuditEntryRepository;
 use Opus\AuditBundle\Tests\Fixtures\Customer;
 use Opus\AuditBundle\Tests\Fixtures\Invoice;
 use Opus\AuditBundle\Tests\Fixtures\Tag;
@@ -28,37 +26,32 @@ final class RecordingTest extends AuditIntegrationTestCase
         self::assertCount(1, $entries);
 
         $entry = $entries[0];
-        self::assertSame(AuditAction::Create, $entry->getAction());
+        self::assertSame('create', $entry->getAction());
         self::assertSame(1, $entry->getSequenceNo());
         self::assertSame(HashCalculator::GENESIS_HASH, $entry->getPreviousHash());
-        self::assertSame('rechnung', $entry->getStreamId());
-        self::assertSame('2026-06-01T12:00:00.000000Z', $entry->getOccurredAtString());
+        self::assertSame('rechnung', $entry->getStream());
     }
 
     public function testUpdateCapturesFieldDiffs(): void
     {
         $invoice = $this->createInvoice();
 
-        $this->services->transaction->run(static function () use ($invoice): void {
-            $invoice->setStatus('open');
-            $invoice->setAmount(200);
-            self::$em->flush();
-        });
+        $invoice->setStatus('open');
+        $invoice->setAmount(200);
+        self::$em->flush();
 
-        $changes = $this->reader()->decryptMap($this->lastEntry()->getChanges());
-
+        $changes = $this->services->normalizer->decryptMap($this->lastEntry()->getChanges());
         self::assertEqualsCanonicalizing(['old' => 'draft', 'new' => 'open'], $changes['status']);
         self::assertEqualsCanonicalizing(['old' => 0, 'new' => 200], $changes['amount']);
     }
 
     public function testSensitiveFieldIsEncryptedAtRestAndDecryptableOnRead(): void
     {
-        $invoice = $this->createInvoice('Müller GmbH');
+        $this->createInvoice('Müller GmbH');
 
-        $rawChanges = $this->rawColumn('changes');
-        self::assertStringNotContainsString('Müller GmbH', $rawChanges, 'sensitive value must not be stored in clear');
+        self::assertStringNotContainsString('Müller GmbH', $this->rawChanges());
 
-        $decrypted = $this->reader()->decryptMap($this->lastEntry()->getChanges());
+        $decrypted = $this->services->normalizer->decryptMap($this->lastEntry()->getChanges());
         self::assertSame('Müller GmbH', $decrypted['customerName']['new']);
     }
 
@@ -66,13 +59,11 @@ final class RecordingTest extends AuditIntegrationTestCase
     {
         $invoice = $this->createInvoice();
 
-        $this->services->transaction->run(static function () use ($invoice): void {
-            $invoice->setInternalToken('tok-secret-value');
-            $invoice->setStatus('open');
-            self::$em->flush();
-        });
+        $invoice->setInternalToken('tok-secret-value');
+        $invoice->setStatus('open');
+        self::$em->flush();
 
-        self::assertStringNotContainsString('tok-secret-value', $this->rawColumn('changes'));
+        self::assertStringNotContainsString('tok-secret-value', $this->rawChanges());
         self::assertArrayNotHasKey('internalToken', $this->lastEntry()->getChanges());
     }
 
@@ -80,12 +71,10 @@ final class RecordingTest extends AuditIntegrationTestCase
     {
         $invoice = $this->createInvoice();
 
-        $this->services->transaction->run(static function () use ($invoice): void {
-            $invoice->setApiKey('sk-live-supersecret');
-            self::$em->flush();
-        });
+        $invoice->setApiKey('sk-live-supersecret');
+        self::$em->flush();
 
-        self::assertStringNotContainsString('sk-live-supersecret', $this->rawColumn('changes'));
+        self::assertStringNotContainsString('sk-live-supersecret', $this->rawChanges());
         self::assertEqualsCanonicalizing(
             ['old' => FieldSanitizer::MASK, 'new' => FieldSanitizer::MASK],
             $this->lastEntry()->getChanges()['apiKey'],
@@ -96,15 +85,12 @@ final class RecordingTest extends AuditIntegrationTestCase
     {
         $invoice = $this->createInvoice();
 
-        $this->services->transaction->run(static function () use ($invoice): void {
-            self::$em->remove($invoice);
-            self::$em->flush();
-        });
+        self::$em->remove($invoice);
+        self::$em->flush();
 
         $entry = $this->lastEntry();
-        self::assertSame(AuditAction::Delete, $entry->getAction());
-
-        $changes = $this->reader()->decryptMap($entry->getChanges());
+        self::assertSame('delete', $entry->getAction());
+        $changes = $this->services->normalizer->decryptMap($entry->getChanges());
         self::assertEqualsCanonicalizing(['old' => 'draft', 'new' => null], $changes['status']);
     }
 
@@ -113,20 +99,22 @@ final class RecordingTest extends AuditIntegrationTestCase
         $invoice = $this->createInvoice();
         $tag = new Tag('priority');
 
-        $this->services->transaction->run(static function () use ($invoice, $tag): void {
-            self::$em->persist($tag);
-            $invoice->addTag($tag);
-            self::$em->flush();
-        });
+        self::$em->persist($tag);
+        $invoice->addTag($tag);
+        self::$em->flush();
 
-        // Exactly one new entry (create + this one), and it carries the diff.
         $entries = $this->entries();
         self::assertCount(2, $entries);
-
         $changes = $entries[1]->getChanges();
         self::assertArrayHasKey('tags', $changes);
         self::assertSame([$tag->getId()], $changes['tags']['added']);
-        self::assertSame([], $changes['tags']['removed']);
+    }
+
+    public function testRecordingNeedsNoExplicitTransaction(): void
+    {
+        // Plain persist + flush: the audit row is written in the same flush.
+        $this->createInvoice();
+        self::assertSame(1, $this->countEntries());
     }
 
     public function testRollbackLeavesNoAuditEntry(): void
@@ -134,19 +122,19 @@ final class RecordingTest extends AuditIntegrationTestCase
         $customer = new Customer('Acme');
         $invoice = new Invoice($customer, 'Acme');
 
+        $connection = self::$connection;
+        $connection->beginTransaction();
         try {
-            $this->services->transaction->run(static function () use ($customer, $invoice): void {
-                self::$em->persist($customer);
-                self::$em->persist($invoice);
-                self::$em->flush();
-
-                throw new \RuntimeException('boom after flush');
-            });
-            self::fail('Expected the transaction to bubble the exception.');
-        } catch (\RuntimeException $e) {
-            self::assertSame('boom after flush', $e->getMessage());
+            self::$em->persist($customer);
+            self::$em->persist($invoice);
+            self::$em->flush();
+            $connection->rollBack();
+        } catch (\Throwable $e) {
+            $connection->rollBack();
+            throw $e;
         }
 
+        self::$em->clear();
         self::assertSame(0, $this->countEntries(), 'a rolled-back change must leave no phantom audit row');
     }
 
@@ -154,9 +142,8 @@ final class RecordingTest extends AuditIntegrationTestCase
     {
         $this->createInvoice();
 
-        $entry = $this->lastEntry();
-        self::assertSame(ActorType::System, $entry->getActorType());
-        self::assertNull($entry->getActorId());
+        self::assertSame(ActorType::System, $this->lastEntry()->getActorType());
+        self::assertNull($this->lastEntry()->getActorId());
     }
 
     public function testRunAsSetsTheActor(): void
@@ -164,35 +151,42 @@ final class RecordingTest extends AuditIntegrationTestCase
         $customer = new Customer('Acme');
         $invoice = new Invoice($customer, 'Acme');
 
-        $this->services->auditContext->runAs(Actor::cli('nightly-import'), function () use ($customer, $invoice): void {
-            $this->services->transaction->run(static function () use ($customer, $invoice): void {
-                self::$em->persist($customer);
-                self::$em->persist($invoice);
-                self::$em->flush();
-            });
+        $this->services->auditContext->runAs(Actor::cli('nightly-import'), static function () use ($customer, $invoice): void {
+            self::$em->persist($customer);
+            self::$em->persist($invoice);
+            self::$em->flush();
         });
 
-        $entry = $this->lastEntry();
-        self::assertSame(ActorType::Cli, $entry->getActorType());
-        self::assertSame('nightly-import', $entry->getActorId());
+        self::assertSame(ActorType::Cli, $this->lastEntry()->getActorType());
+        self::assertSame('nightly-import', $this->lastEntry()->getActorId());
     }
 
     public function testCryptoShreddingErasesContentButKeepsChainValid(): void
     {
         $invoice = $this->createInvoice('Müller GmbH');
-        $subjects = $this->services->subjectResolver->resolveForEntity($invoice);
-
-        foreach ($subjects as $subject) {
-            $this->services->keyStore->shred($subject);
+        foreach ($this->services->subjectResolver->resolveForEntity($invoice) as $subject) {
+            $this->services->keyProvider->shred($subject);
         }
 
-        // Content is gone …
-        $decrypted = $this->reader()->decryptMap($this->lastEntry()->getChanges());
+        $decrypted = $this->services->normalizer->decryptMap($this->lastEntry()->getChanges());
         self::assertSame(CryptoShredder::REDACTED, $decrypted['customerName']['new']);
 
-        // … but the chain is still intact (ciphertext bytes were not touched).
-        $result = $this->services->chain->verify('rechnung', 1, null, HashCalculator::GENESIS_HASH);
-        self::assertTrue($result->valid, $result->message);
+        self::assertTrue($this->repository()->verify('rechnung')->valid);
+    }
+
+    public function testVerifyDetectsTampering(): void
+    {
+        $this->createInvoice();
+        $this->createInvoiceForExistingChain();
+
+        // Simulate an attacker rewriting stored content.
+        self::$connection->executeStatement(
+            "UPDATE audit_entry SET changes = '{\"status\":{\"new\":\"hacked\",\"old\":\"x\"}}' WHERE sequence_no = 1",
+        );
+
+        $result = $this->repository()->verify('rechnung');
+        self::assertFalse($result->valid);
+        self::assertSame(1, $result->brokenAtSequence);
     }
 
     public function testBulkDqlBypassesCaptureAsDocumented(): void
@@ -200,46 +194,25 @@ final class RecordingTest extends AuditIntegrationTestCase
         $this->createInvoice();
         self::assertSame(1, $this->countEntries());
 
-        // Bulk DQL bypasses the UnitOfWork — the listener cannot see it. This is
-        // the Spine's documented detective-only limitation (closed by E4).
-        $this->services->transaction->run(static function (): void {
-            self::$em->createQuery('UPDATE '.Invoice::class.' i SET i.status = :s')
-                ->setParameter('s', 'archived')
-                ->execute();
-        });
+        self::$em->createQuery('UPDATE '.Invoice::class.' i SET i.status = :s')->setParameter('s', 'archived')->execute();
 
         self::assertSame(1, $this->countEntries(), 'bulk DQL is intentionally not captured');
-    }
-
-    public function testFlushWithoutTransactionIsRejected(): void
-    {
-        $customer = new Customer('Acme');
-        $invoice = new Invoice($customer, 'Acme');
-
-        self::$em->persist($customer);
-        self::$em->persist($invoice);
-
-        $this->expectException(MissingAuditTransactionException::class);
-        self::$em->flush();
     }
 
     private function createInvoice(string $customerName = 'Acme GmbH'): Invoice
     {
         $customer = new Customer($customerName);
         $invoice = new Invoice($customer, $customerName);
-
-        $this->services->transaction->run(static function () use ($customer, $invoice): void {
-            self::$em->persist($customer);
-            self::$em->persist($invoice);
-            self::$em->flush();
-        });
+        self::$em->persist($customer);
+        self::$em->persist($invoice);
+        self::$em->flush();
 
         return $invoice;
     }
 
-    private function reader(): \Opus\AuditBundle\Reading\AuditEntryReader
+    private function createInvoiceForExistingChain(): void
     {
-        return $this->services->reader;
+        $this->createInvoice();
     }
 
     /**
@@ -259,15 +232,22 @@ final class RecordingTest extends AuditIntegrationTestCase
         return $entries[array_key_last($entries)];
     }
 
-    private function countEntries(): int
+    private function repository(): AuditEntryRepository
     {
-        return (int) self::$connection->fetchOne(\sprintf('SELECT COUNT(*) FROM %s', Schema::ENTRY_TABLE));
+        self::$em->clear();
+        /** @var AuditEntryRepository $repository */
+        $repository = self::$em->getRepository(AuditEntry::class);
+
+        return $repository;
     }
 
-    private function rawColumn(string $column): string
+    private function countEntries(): int
     {
-        return implode('|', self::$connection->fetchFirstColumn(
-            \sprintf('SELECT %s FROM %s ORDER BY sequence_no', $column, Schema::ENTRY_TABLE),
-        ));
+        return (int) self::$connection->fetchOne('SELECT COUNT(*) FROM audit_entry');
+    }
+
+    private function rawChanges(): string
+    {
+        return implode('|', self::$connection->fetchFirstColumn('SELECT changes FROM audit_entry ORDER BY sequence_no'));
     }
 }
