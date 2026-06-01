@@ -45,6 +45,15 @@ jobs:
               --description "Read-only split of ${{ matrix.package.local }} from opus-125/core. Do not edit directly." \
               --homepage "https://github.com/opus-125/core"
           fi
+          # The split action checks out the target branch, so it must exist.
+          # Seed it on a freshly created (empty) mirror; the split then force-pushes over it.
+          if ! gh api "repos/$repo/branches/main" >/dev/null 2>&1; then
+            echo "Seeding main branch on $repo ..."
+            gh api -X PUT "repos/$repo/contents/.gitkeep" \
+              -f message="Initialise read-only mirror" \
+              -f content="$(printf 'mirror' | base64 -w0)" \
+              -f branch=main
+          fi
 
       # Mirror branch commits (no tag).
       - name: Split (branch)
