@@ -128,9 +128,24 @@ export function App() {
 
         <Section id="audit-bundle" title="AuditBundle">
           <p>
-            <Code>opus/audit-bundle</Code> provides audit logging for Symfony applications. The
-            bundle is under active development — its configuration and services are documented here
-            as they land.
+            <Code>opus/audit-bundle</Code> is a tamper-evident audit trail with GDPR-compliant
+            crypto-shredding and retention — the shared compliance spine for public-sector software.
+            Behaviour is declared on entities with attributes; configuration is infrastructure only.
+          </p>
+          <p>
+            The <strong>Spine</strong> (default-on) records every create/update/delete of an{' '}
+            <Code>#[Auditable]</Code> entity through a Doctrine listener into a linear SHA-256
+            hash-chain with gapless, per-stream sequence numbers — so any later tampering is
+            detectable by <Code>audit:verify</Code>. <Code>#[Sensitive]</Code> fields are encrypted
+            per data subject; erasing a person (GDPR Art. 17) destroys their key, leaving the
+            ciphertext — and therefore the chain — intact while the personal content becomes
+            permanently unreadable. <Code>#[Retention]</Code> bounds how long entries are kept.
+          </p>
+          <p>
+            Escalation tiers — versioning (E1), Merkle integrity (E2), qualified signatures (E3,
+            eIDAS / ID Austria) and trigger-level capture (E4) — are opt-in and independent; you pay
+            for none of them until you switch them on. See{' '}
+            <Code>packages/audit-bundle/docs/index.md</Code> for the full guide.
           </p>
           <p>
             Source &amp; issues:{' '}

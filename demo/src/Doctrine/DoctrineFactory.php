@@ -25,7 +25,7 @@ final class DoctrineFactory
 {
     public static function createEntityManager(string $databaseUrl): EntityManagerInterface
     {
-        $auditModelDir = \dirname((string) (new \ReflectionClass(AuditEntry::class))->getFileName());
+        $auditModelDir = \dirname((string) new \ReflectionClass(AuditEntry::class)->getFileName());
 
         $config = ORMSetup::createAttributeMetadataConfiguration(
             paths: [__DIR__.'/../Entity', $auditModelDir],

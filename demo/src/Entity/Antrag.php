@@ -92,4 +92,13 @@ class Antrag
     {
         return $this->antragsteller;
     }
+
+    /**
+     * Demonstrates #[AuditIgnore]: the application uses this value but it is
+     * never written to the audit trail.
+     */
+    public function getInternerToken(): string
+    {
+        return $this->internerToken;
+    }
 }
