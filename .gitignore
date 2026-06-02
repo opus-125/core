@@ -8,3 +8,9 @@ demo/composer.lock
 .phpunit.cache/
 .phpunit.result.cache
 /docs/.site/
+/docs/node_modules/
+/docs/dist/
+# Symfony auto-generated autowiring reference dumps (apps only, never committed)
+config/reference.php
+packages/*/config/reference.php
+demo/config/reference.php

@@ -25,7 +25,8 @@ export const bundles: Bundle[] = [
     name: 'AuditBundle',
     package: 'opus/audit-bundle',
     repo: 'https://github.com/opus-125/audit-bundle',
-    description: 'Audit logging for Symfony applications.',
-    status: 'in-development',
+    description:
+      'Tamper-evident audit trail with GDPR crypto-shredding and retention for Symfony.',
+    status: 'available',
   },
 ]

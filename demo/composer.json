@@ -5,11 +5,15 @@
     "license": "MIT",
     "require": {
         "php": ">=8.4",
+        "doctrine/doctrine-bundle": "^3.2",
+        "doctrine/orm": "^3.3",
         "opus/audit-bundle": "@dev",
         "symfony/console": "^8.0",
         "symfony/dotenv": "^8.0",
         "symfony/framework-bundle": "^8.0",
         "symfony/runtime": "^8.0",
+        "symfony/twig-bundle": "^8.0",
+        "symfony/uid": "^8.0",
         "symfony/yaml": "^8.0"
     },
     "repositories": [

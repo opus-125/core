@@ -3,7 +3,9 @@
 [![Latest Stable Version](https://poser.pugx.org/opus/audit-bundle/v/stable)](https://packagist.org/packages/opus/audit-bundle)
 [![License](https://poser.pugx.org/opus/audit-bundle/license)](https://packagist.org/packages/opus/audit-bundle)
 
-Audit logging for Symfony applications.
+Tamper-evident audit trail with GDPR-compliant crypto-shredding and retention
+for Symfony applications — the shared compliance spine for public-sector
+software.
 
 > **Note**
 > This repository is a **read-only mirror**. It is split automatically from the

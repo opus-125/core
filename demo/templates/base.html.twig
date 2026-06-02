@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Opus AuditBundle demo{% endblock %}</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 60rem; color: #1e293b; }
+        h1 { font-size: 1.4rem; }
+        .card { border: 1px solid #e2e8f0; border-radius: .5rem; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+        table { border-collapse: collapse; width: 100%; font-size: .85rem; margin-top: .75rem; }
+        th, td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+        th { color: #64748b; font-weight: 600; }
+        form { display: inline; }
+        input, button { font: inherit; padding: .3rem .5rem; }
+        .muted { color: #94a3b8; }
+        .redacted { color: #b91c1c; }
+        code { background: #f1f5f9; padding: .05rem .3rem; border-radius: .25rem; }
+    </style>
+</head>
+<body>
+{% block body %}{% endblock %}
+</body>
+</html>

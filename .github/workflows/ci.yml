@@ -9,6 +9,26 @@ jobs:
   tests:
     name: Tests & static analysis
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: opus_audit_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # Consumed by the audit-bundle test harness (OrmFactory / functional kernel).
+      OPUS_AUDIT_TEST_DSN: "postgresql://postgres:postgres@127.0.0.1:5432/opus_audit_test"
+
     steps:
       - uses: actions/checkout@v4
 
@@ -16,6 +36,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
+          extensions: pdo_pgsql, pgsql, sodium
           coverage: none
           tools: composer:v2
 
