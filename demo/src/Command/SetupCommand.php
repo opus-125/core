@@ -9,6 +9,7 @@ use App\Entity\Citizen;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Opus125\AuditBundle\Model\AuditEntry;
+use Opus125\GdprBundle\Model\SubjectKey;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -33,7 +34,7 @@ final class SetupCommand extends Command
 
         $tool = new SchemaTool($this->em);
         $classes = array_map($this->em->getClassMetadata(...), [
-            Application::class, Citizen::class, AuditEntry::class,
+            Application::class, Citizen::class, AuditEntry::class, SubjectKey::class,
         ]);
         $tool->dropSchema($classes);
         $tool->createSchema($classes);

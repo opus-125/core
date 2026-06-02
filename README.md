@@ -14,8 +14,10 @@ automatically split into its own **read-only** repository for distribution on
 ## Layout
 
 ```
-packages/            One directory per bundle (each a standalone Composer package)
-  audit-bundle/      opus125/audit-bundle → split to opus-125/audit-bundle
+packages/            One directory per package (each a standalone Composer package)
+  data-contracts/    opus125/data-contracts → shared personal-data attributes + interfaces
+  audit-bundle/      opus125/audit-bundle → tamper-evident audit trail
+  gdpr-bundle/       opus125/gdpr-bundle → registry-driven GDPR tooling (depends on data-contracts)
 demo/                Symfony 8 app integrating the bundles via a path repository
 docs/                Documentation site — a Vite + React app (deployed to GitHub Pages)
 .github/workflows/

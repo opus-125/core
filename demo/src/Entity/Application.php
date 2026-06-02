@@ -7,6 +7,8 @@ namespace App\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Opus125\AuditBundle\Attribute as Audit;
+use Opus125\DataContracts\Attribute as Gdpr;
+use Opus125\DataContracts\Erasure\ErasureStrategy;
 use Symfony\Component\Uid\Uuid;
 
 /**
@@ -32,9 +34,11 @@ class Application
     private string $status = 'submitted';
 
     #[Audit\Sensitive]
+    #[Gdpr\PersonalData(category: 'case-note', purpose: 'case', basis: 'consent', sensitive: true, erasure: ErasureStrategy::CryptoShred)]
     #[ORM\Column(type: Types::TEXT)]
     private string $note = '';
 
+    #[Gdpr\SubjectLink(Citizen::class)]
     #[ORM\ManyToOne(targetEntity: Citizen::class)]
     #[ORM\JoinColumn(nullable: false)]
     private Citizen $applicant;

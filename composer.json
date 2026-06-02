@@ -32,16 +32,22 @@
         "symplify/monorepo-builder": "^12.5"
     },
     "replace": {
-        "opus125/audit-bundle": "self.version"
+        "opus125/audit-bundle": "self.version",
+        "opus125/data-contracts": "self.version",
+        "opus125/gdpr-bundle": "self.version"
     },
     "autoload": {
         "psr-4": {
-            "Opus125\\AuditBundle\\": "packages/audit-bundle/src/"
+            "Opus125\\AuditBundle\\": "packages/audit-bundle/src/",
+            "Opus125\\DataContracts\\": "packages/data-contracts/src/",
+            "Opus125\\GdprBundle\\": "packages/gdpr-bundle/src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Opus125\\AuditBundle\\Tests\\": "packages/audit-bundle/tests/"
+            "Opus125\\AuditBundle\\Tests\\": "packages/audit-bundle/tests/",
+            "Opus125\\DataContracts\\Tests\\": "packages/data-contracts/tests/",
+            "Opus125\\GdprBundle\\Tests\\": "packages/gdpr-bundle/tests/"
         }
     },
     "minimum-stability": "stable",

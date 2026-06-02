@@ -12,6 +12,8 @@ use Opus125\AuditBundle\Actor\AuditContext;
 use Opus125\AuditBundle\Model\AuditEntry;
 use Opus125\AuditBundle\Repository\AuditEntryRepository;
 use Opus125\AuditBundle\Serializer\AuditEntryNormalizer;
+use Opus125\DataContracts\Subject\SubjectReference;
+use Opus125\GdprBundle\Erasure\ErasureService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,6 +29,7 @@ final class AuditDemoController extends AbstractController
         private readonly EntityManagerInterface $em,
         private readonly AuditEntryNormalizer $normalizer,
         private readonly AuditContext $auditContext,
+        private readonly ErasureService $erasure,
     ) {
     }
 
@@ -76,12 +79,12 @@ final class AuditDemoController extends AbstractController
     #[Route('/citizens/{id}/shred', name: 'app_shred', methods: ['POST'])]
     public function shred(string $id): Response
     {
-        // Anonymise the citizen (GDPR Art. 17): dropping their key crypto-shreds
-        // their sensitive audit values. Just a normal domain operation.
-        $citizen = $this->em->getRepository(Citizen::class)->find($id);
-        if ($citizen instanceof Citizen) {
-            $citizen->anonymize();
-            $this->em->flush();
+        // Erase the citizen (GDPR Art. 17) through the GDPR bundle: their name is
+        // pseudonymised and their data key crypto-shredded — which, via the key
+        // bridge, also redacts the applicant's sensitive audit values, while the
+        // audit hash-chain stays valid.
+        if (null !== $this->em->getRepository(Citizen::class)->find($id)) {
+            $this->erasure->erase(new SubjectReference(Citizen::class, $id));
         }
 
         return $this->redirectToRoute('app_index');
