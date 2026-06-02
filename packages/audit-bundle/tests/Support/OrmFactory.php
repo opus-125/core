@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Support;
+namespace Opus125\AuditBundle\Tests\Support;
 
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection;
@@ -13,26 +13,26 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\ResolveTargetEntityListener;
 use Doctrine\ORM\Tools\SchemaTool;
-use Opus\AuditBundle\Model\AuditEntry;
-use Opus\AuditBundle\Model\AuditEntryInterface;
+use Opus125\AuditBundle\Model\AuditEntry;
+use Opus125\AuditBundle\Model\AuditEntryInterface;
 
 /**
  * Bootstraps a real Doctrine ORM EntityManager against the test PostgreSQL
  * database, without DoctrineBundle.
  *
- * The connection target is taken from the `OPUS_AUDIT_TEST_DSN` environment
+ * The connection target is taken from the `OPUS125_AUDIT_TEST_DSN` environment
  * variable, defaulting to the local cluster used by the test suite. Integration
  * tests that touch advisory locks / gapless sequences require PostgreSQL; the
  * spec targets it explicitly.
  */
 final class OrmFactory
 {
-    private const string DEFAULT_DSN = 'pdo-pgsql://postgres@127.0.0.1:5432/opus_audit_test';
+    private const string DEFAULT_DSN = 'pdo-pgsql://postgres@127.0.0.1:5432/opus125_audit_test';
 
     public static function createConnection(): Connection
     {
         $params = new DsnParser(['postgres' => 'pdo_pgsql', 'postgresql' => 'pdo_pgsql'])
-            ->parse(getenv('OPUS_AUDIT_TEST_DSN') ?: self::DEFAULT_DSN);
+            ->parse(getenv('OPUS125_AUDIT_TEST_DSN') ?: self::DEFAULT_DSN);
 
         return DriverManager::getConnection($params);
     }

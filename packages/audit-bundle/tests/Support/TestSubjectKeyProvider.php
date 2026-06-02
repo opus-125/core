@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Support;
+namespace Opus125\AuditBundle\Tests\Support;
 
-use Opus\AuditBundle\Crypto\SubjectKeyProviderInterface;
+use Opus125\AuditBundle\Crypto\SubjectKeyProviderInterface;
 
 /**
  * In-memory key provider for tests: derives a key per subject, and lets a test

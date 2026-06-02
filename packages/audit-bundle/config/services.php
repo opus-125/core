@@ -2,30 +2,33 @@
 
 declare(strict_types=1);
 
-use Opus\AuditBundle\Actor\ActorResolverInterface;
-use Opus\AuditBundle\Actor\AuditContext;
-use Opus\AuditBundle\Actor\SecurityActorResolver;
-use Opus\AuditBundle\Command\PurgeCommand;
-use Opus\AuditBundle\Crypto\AppSecretSubjectKeyProvider;
-use Opus\AuditBundle\Crypto\Cipher;
-use Opus\AuditBundle\Crypto\SensitiveValueCipher;
-use Opus\AuditBundle\Crypto\SubjectKeyProviderInterface;
-use Opus\AuditBundle\Integrity\CanonicalJsonEncoder;
-use Opus\AuditBundle\Integrity\HashCalculator;
-use Opus\AuditBundle\Metadata\AuditAttributeReader;
-use Opus\AuditBundle\Metadata\FieldSanitizer;
-use Opus\AuditBundle\Recording\AuditContextProvider;
-use Opus\AuditBundle\Recording\AuditRecorder;
-use Opus\AuditBundle\Recording\ChangeSetNormalizer;
-use Opus\AuditBundle\Recording\DoctrineAuditListener;
-use Opus\AuditBundle\Retention\AttributeRetentionPolicy;
-use Opus\AuditBundle\Retention\Purger;
-use Opus\AuditBundle\Retention\RetentionPolicyInterface;
-use Opus\AuditBundle\Serializer\AuditEntryNormalizer;
+use Opus125\AuditBundle\Actor\ActorResolverInterface;
+use Opus125\AuditBundle\Actor\AuditContext;
+use Opus125\AuditBundle\Actor\SecurityActorResolver;
+use Opus125\AuditBundle\Command\PurgeCommand;
+use Opus125\AuditBundle\Crypto\AppSecretSubjectKeyProvider;
+use Opus125\AuditBundle\Crypto\Cipher;
+use Opus125\AuditBundle\Crypto\SensitiveValueCipher;
+use Opus125\AuditBundle\Crypto\SubjectKeyProviderInterface;
+use Opus125\AuditBundle\Integrity\CanonicalJsonEncoder;
+use Opus125\AuditBundle\Integrity\HashCalculator;
+use Opus125\AuditBundle\Metadata\AuditAttributeReader;
+use Opus125\AuditBundle\Metadata\FieldSanitizer;
+use Opus125\AuditBundle\Recording\AuditContextProvider;
+use Opus125\AuditBundle\Recording\AuditRecorder;
+use Opus125\AuditBundle\Recording\ChangeSetNormalizer;
+use Opus125\AuditBundle\Recording\DoctrineAuditListener;
+use Opus125\AuditBundle\Retention\AttributeRetentionPolicy;
+use Opus125\AuditBundle\Retention\Purger;
+use Opus125\AuditBundle\Retention\RetentionPolicyInterface;
+use Opus125\AuditBundle\Serializer\AuditEntryNormalizer;
+use Opus125\AuditBundle\Workflow\WorkflowAuditSubscriber;
+use Opus125\AuditBundle\Workflow\WorkflowTransitionBuffer;
 use Psr\Clock\ClockInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Clock\NativeClock;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\Workflow\WorkflowEvents;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
@@ -65,7 +68,16 @@ return static function (ContainerConfigurator $container): void {
     $services->set(AuditRecorder::class)
         ->arg('$eventDispatcher', service(EventDispatcherInterface::class)->nullOnInvalid());
     $services->set(DoctrineAuditListener::class)
+        ->arg('$workflowBuffer', service(WorkflowTransitionBuffer::class)->nullOnInvalid())
         ->tag('doctrine.event_listener', ['event' => 'onFlush']);
+
+    // Workflow transition auditing — opt-in per entity via #[AuditableWorkflow].
+    // The subscriber only loads when the Symfony Workflow component is present,
+    // so the bundle never requires it.
+    $services->set(WorkflowTransitionBuffer::class);
+    if (class_exists(WorkflowEvents::class)) {
+        $services->set(WorkflowAuditSubscriber::class);
+    }
 
     // Read / export.
     $services->set(AuditEntryNormalizer::class);

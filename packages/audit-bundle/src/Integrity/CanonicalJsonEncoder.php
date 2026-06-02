@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Integrity;
+namespace Opus125\AuditBundle\Integrity;
 
-use Opus\AuditBundle\Integrity\Exception\NonCanonicalizableValueException;
+use Opus125\AuditBundle\Integrity\Exception\NonCanonicalizableValueException;
 
 /**
  * Deterministic, canonical JSON serialisation for the audit hash-chain.

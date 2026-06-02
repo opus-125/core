@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Metadata;
+namespace Opus125\AuditBundle\Tests\Metadata;
 
-use Opus\AuditBundle\Attribute\Auditable;
-use Opus\AuditBundle\Attribute\AuditIgnore;
-use Opus\AuditBundle\Attribute\Retention;
-use Opus\AuditBundle\Attribute\Sensitive;
-use Opus\AuditBundle\Metadata\AuditAttributeReader;
+use Opus125\AuditBundle\Attribute\Auditable;
+use Opus125\AuditBundle\Attribute\AuditIgnore;
+use Opus125\AuditBundle\Attribute\Retention;
+use Opus125\AuditBundle\Attribute\Sensitive;
+use Opus125\AuditBundle\Metadata\AuditAttributeReader;
 use PHPUnit\Framework\TestCase;
 
 final class AuditAttributeReaderTest extends TestCase

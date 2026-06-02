@@ -6,7 +6,7 @@
          failOnRisky="true"
          failOnWarning="true">
     <testsuites>
-        <testsuite name="opus/audit-bundle">
+        <testsuite name="opus125/audit-bundle">
             <directory>tests</directory>
         </testsuite>
     </testsuites>

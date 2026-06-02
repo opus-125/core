@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Model;
+namespace Opus125\AuditBundle\Model;
 
 use Doctrine\ORM\Mapping as ORM;
-use Opus\AuditBundle\Repository\AuditEntryRepository;
+use Opus125\AuditBundle\Repository\AuditEntryRepository;
 
 /**
  * Default audit entry entity.

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Integrity;
+namespace Opus125\AuditBundle\Tests\Integrity;
 
-use Opus\AuditBundle\Integrity\CanonicalJsonEncoder;
-use Opus\AuditBundle\Integrity\HashCalculator;
+use Opus125\AuditBundle\Integrity\CanonicalJsonEncoder;
+use Opus125\AuditBundle\Integrity\HashCalculator;
 use PHPUnit\Framework\TestCase;
 
 final class HashCalculatorTest extends TestCase

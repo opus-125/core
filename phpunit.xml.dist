@@ -6,7 +6,7 @@
          failOnRisky="true"
          failOnWarning="true">
     <testsuites>
-        <testsuite name="opus monorepo">
+        <testsuite name="opus125 monorepo">
             <directory>packages/*/tests</directory>
         </testsuite>
     </testsuites>

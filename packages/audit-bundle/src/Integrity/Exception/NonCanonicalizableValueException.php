@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Integrity\Exception;
+namespace Opus125\AuditBundle\Integrity\Exception;
 
 /**
  * Thrown when a value cannot be turned into a deterministic, canonical form.

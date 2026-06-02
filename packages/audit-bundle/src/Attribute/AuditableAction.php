@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Attribute;
+namespace Opus125\AuditBundle\Attribute;
 
 /**
  * Mark a method as a non-mutating, auditable action (a read, download, export,

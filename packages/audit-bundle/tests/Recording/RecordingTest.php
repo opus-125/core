@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Recording;
+namespace Opus125\AuditBundle\Tests\Recording;
 
-use Opus\AuditBundle\Actor\Actor;
-use Opus\AuditBundle\Crypto\SensitiveValueCipher;
-use Opus\AuditBundle\Enum\ActorType;
-use Opus\AuditBundle\Integrity\HashCalculator;
-use Opus\AuditBundle\Metadata\FieldSanitizer;
-use Opus\AuditBundle\Model\AuditEntry;
-use Opus\AuditBundle\Repository\AuditEntryRepository;
-use Opus\AuditBundle\Tests\Fixtures\Customer;
-use Opus\AuditBundle\Tests\Fixtures\Invoice;
-use Opus\AuditBundle\Tests\Fixtures\Tag;
-use Opus\AuditBundle\Tests\Support\AuditIntegrationTestCase;
+use Opus125\AuditBundle\Actor\Actor;
+use Opus125\AuditBundle\Crypto\SensitiveValueCipher;
+use Opus125\AuditBundle\Enum\ActorType;
+use Opus125\AuditBundle\Integrity\HashCalculator;
+use Opus125\AuditBundle\Metadata\FieldSanitizer;
+use Opus125\AuditBundle\Model\AuditEntry;
+use Opus125\AuditBundle\Repository\AuditEntryRepository;
+use Opus125\AuditBundle\Tests\Fixtures\Customer;
+use Opus125\AuditBundle\Tests\Fixtures\Invoice;
+use Opus125\AuditBundle\Tests\Fixtures\Tag;
+use Opus125\AuditBundle\Tests\Support\AuditIntegrationTestCase;
 
 final class RecordingTest extends AuditIntegrationTestCase
 {

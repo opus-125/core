@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Retention;
+namespace Opus125\AuditBundle\Retention;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Opus\AuditBundle\Model\AuditEntryInterface;
+use Opus125\AuditBundle\Model\AuditEntryInterface;
 use Psr\Clock\ClockInterface;
 
 /**

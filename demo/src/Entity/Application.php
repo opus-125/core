@@ -6,14 +6,14 @@ namespace App\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Opus\AuditBundle\Attribute as Audit;
+use Opus125\AuditBundle\Attribute as Audit;
 use Symfony\Component\Uid\Uuid;
 
 /**
  * An administrative application — the audited aggregate of the demo.
  *
  * Demonstrates the attribute surface using the Doctrine-style alias import:
- * `use Opus\AuditBundle\Attribute as Audit;` then `#[Audit\Auditable]`, …
+ * `use Opus125\AuditBundle\Attribute as Audit;` then `#[Audit\Auditable]`, …
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'application')]

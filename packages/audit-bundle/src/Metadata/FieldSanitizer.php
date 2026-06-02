@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Metadata;
+namespace Opus125\AuditBundle\Metadata;
 
 /**
  * Safety net that flags field names that *look* secret even when the developer
  * forgot to annotate them.
  *
- * This is a backstop, not a replacement for {@see \Opus\AuditBundle\Attribute\AuditIgnore}
- * / {@see \Opus\AuditBundle\Attribute\Sensitive}: it catches the common
+ * This is a backstop, not a replacement for {@see \Opus125\AuditBundle\Attribute\AuditIgnore}
+ * / {@see \Opus125\AuditBundle\Attribute\Sensitive}: it catches the common
  * "oops, plaintext password in the audit log" mistake by recognising names like
  * `password`, `token`, `secret`, `apiKey`, `private_key`. Matching is done on a
  * normalised form so `apiKey`, `api_key` and `API-KEY` are treated alike.
@@ -20,7 +20,7 @@ namespace Opus\AuditBundle\Metadata;
  */
 final class FieldSanitizer
 {
-    public const string MASK = '__opus_audit_masked__';
+    public const string MASK = '__opus125_audit_masked__';
 
     /**
      * Substrings that, if present in the normalised field name, mark it secret.

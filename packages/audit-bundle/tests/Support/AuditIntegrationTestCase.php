@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Support;
+namespace Opus125\AuditBundle\Tests\Support;
 
 use Doctrine\ORM\Events;
-use Opus\AuditBundle\Recording\DoctrineAuditListener;
-use Opus\AuditBundle\Tests\Fixtures\Customer;
-use Opus\AuditBundle\Tests\Fixtures\Invoice;
-use Opus\AuditBundle\Tests\Fixtures\Tag;
+use Opus125\AuditBundle\Recording\DoctrineAuditListener;
+use Opus125\AuditBundle\Tests\Fixtures\Customer;
+use Opus125\AuditBundle\Tests\Fixtures\Invoice;
+use Opus125\AuditBundle\Tests\Fixtures\Tag;
 use Symfony\Component\Clock\MockClock;
 
 /**

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Serializer;
+namespace Opus125\AuditBundle\Serializer;
 
-use Opus\AuditBundle\Crypto\SensitiveValueCipher;
-use Opus\AuditBundle\Crypto\SubjectKeyProviderInterface;
-use Opus\AuditBundle\Model\AuditEntryInterface;
+use Opus125\AuditBundle\Crypto\SensitiveValueCipher;
+use Opus125\AuditBundle\Crypto\SubjectKeyProviderInterface;
+use Opus125\AuditBundle\Model\AuditEntryInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**

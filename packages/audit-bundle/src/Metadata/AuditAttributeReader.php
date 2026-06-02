@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Metadata;
+namespace Opus125\AuditBundle\Metadata;
 
-use Opus\AuditBundle\Attribute\Auditable;
-use Opus\AuditBundle\Attribute\AuditIgnore;
-use Opus\AuditBundle\Attribute\Retention;
-use Opus\AuditBundle\Attribute\Sensitive;
+use Opus125\AuditBundle\Attribute\Auditable;
+use Opus125\AuditBundle\Attribute\AuditableWorkflow;
+use Opus125\AuditBundle\Attribute\AuditIgnore;
+use Opus125\AuditBundle\Attribute\Retention;
+use Opus125\AuditBundle\Attribute\Sensitive;
 
 /**
  * Reads the audit attributes off an entity class, with a small per-class cache.
@@ -18,7 +19,7 @@ use Opus\AuditBundle\Attribute\Sensitive;
 final class AuditAttributeReader
 {
     /**
-     * @var array<class-string, array{auditable: bool, stream: string, retention: string|null, ignored: array<string, true>, sensitive: array<string, true>}>
+     * @var array<class-string, array{auditable: bool, stream: string, retention: string|null, ignored: array<string, true>, sensitive: array<string, true>, workflowAudited: bool, workflowMarking: string|null, workflowTransitions: array<string, true>}>
      */
     private array $cache = [];
 
@@ -63,9 +64,47 @@ final class AuditAttributeReader
     }
 
     /**
+     * Whether the class opts its Symfony Workflow transitions into the trail.
+     *
+     * @param class-string $class
+     */
+    public function isWorkflowAudited(string $class): bool
+    {
+        return $this->read($class)['workflowAudited'];
+    }
+
+    /**
+     * Whether a specific transition should be audited. An empty allow-list on
+     * the attribute audits every applied transition.
+     *
+     * @param class-string $class
+     */
+    public function isTransitionAudited(string $class, string $transition): bool
+    {
+        $meta = $this->read($class);
+
+        if (!$meta['workflowAudited']) {
+            return false;
+        }
+
+        return [] === $meta['workflowTransitions'] || isset($meta['workflowTransitions'][$transition]);
+    }
+
+    /**
+     * The entity property holding the workflow marking, if declared, so the
+     * recorder can keep it from being logged twice.
+     *
+     * @param class-string $class
+     */
+    public function workflowMarking(string $class): ?string
+    {
+        return $this->read($class)['workflowMarking'];
+    }
+
+    /**
      * @param class-string $class
      *
-     * @return array{auditable: bool, stream: string, retention: string|null, ignored: array<string, true>, sensitive: array<string, true>}
+     * @return array{auditable: bool, stream: string, retention: string|null, ignored: array<string, true>, sensitive: array<string, true>, workflowAudited: bool, workflowMarking: string|null, workflowTransitions: array<string, true>}
      */
     private function read(string $class): array
     {
@@ -76,6 +115,7 @@ final class AuditAttributeReader
         $reflection = new \ReflectionClass($class);
         $auditable = $this->classAttribute($reflection, Auditable::class);
         $retention = $this->classAttribute($reflection, Retention::class);
+        $workflow = $this->classAttribute($reflection, AuditableWorkflow::class);
 
         $ignored = [];
         $sensitive = [];
@@ -94,6 +134,9 @@ final class AuditAttributeReader
             'retention' => $retention instanceof Retention ? $retention->duration : null,
             'ignored' => $ignored,
             'sensitive' => $sensitive,
+            'workflowAudited' => $workflow instanceof AuditableWorkflow,
+            'workflowMarking' => $workflow instanceof AuditableWorkflow ? $workflow->marking : null,
+            'workflowTransitions' => $workflow instanceof AuditableWorkflow ? array_fill_keys($workflow->transitions, true) : [],
         ];
     }
 

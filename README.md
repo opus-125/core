@@ -1,6 +1,6 @@
-# Opus
+# Opus125
 
-Development monorepo for the **Opus** family of Symfony 8 bundles. Each bundle is
+Development monorepo for the **Opus125** family of Symfony 8 bundles. Each bundle is
 developed, documented and tested here, exercised by a shared demo application, and
 automatically split into its own **read-only** repository for distribution on
 [Packagist](https://packagist.org).
@@ -15,7 +15,7 @@ automatically split into its own **read-only** repository for distribution on
 
 ```
 packages/            One directory per bundle (each a standalone Composer package)
-  audit-bundle/      opus/audit-bundle → split to opus-125/audit-bundle
+  audit-bundle/      opus125/audit-bundle → split to opus-125/audit-bundle
 demo/                Symfony 8 app integrating the bundles via a path repository
 docs/                Documentation site — a Vite + React app (deployed to GitHub Pages)
 .github/workflows/
@@ -56,7 +56,7 @@ The demo consumes the bundles through a Composer path repository, so edits under
 ## Adding a new bundle
 
 1. `mkdir -p packages/<name>-bundle/{src,config,docs,tests}` and add a
-   `composer.json` (`type: symfony-bundle`, vendor `opus/`).
+   `composer.json` (`type: symfony-bundle`, vendor `opus125/`).
 2. Add its PSR-4 namespaces to the root [`composer.json`](composer.json)
    (`autoload`, `autoload-dev`) and to `replace`.
 3. Run `composer monorepo:merge` to sync dependencies into the root manifest,
@@ -77,7 +77,7 @@ The demo consumes the bundles through a Composer path repository, so edits under
    opus-125/audit-bundle  (read-only mirror, incl. tags)
                      │  Packagist GitHub webhook
                      ▼
-      Packagist: opus/audit-bundle  →  composer require
+      Packagist: opus125/audit-bundle  →  composer require
 ```
 
 ### One-time setup

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Attribute;
+namespace Opus125\AuditBundle\Attribute;
 
 /**
  * Declare how long an entity's audit entries must be kept (Spine).

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Enum;
+namespace Opus125\AuditBundle\Enum;
 
 /**
  * Who (or what) caused an audited change.

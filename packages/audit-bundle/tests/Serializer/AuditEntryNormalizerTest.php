@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Serializer;
+namespace Opus125\AuditBundle\Tests\Serializer;
 
-use Opus\AuditBundle\Crypto\Cipher;
-use Opus\AuditBundle\Crypto\SensitiveValueCipher;
-use Opus\AuditBundle\Enum\ActorType;
-use Opus\AuditBundle\Integrity\HashCalculator;
-use Opus\AuditBundle\Model\AuditEntry;
-use Opus\AuditBundle\Serializer\AuditEntryNormalizer;
-use Opus\AuditBundle\Tests\Support\TestSubjectKeyProvider;
+use Opus125\AuditBundle\Crypto\Cipher;
+use Opus125\AuditBundle\Crypto\SensitiveValueCipher;
+use Opus125\AuditBundle\Enum\ActorType;
+use Opus125\AuditBundle\Integrity\HashCalculator;
+use Opus125\AuditBundle\Model\AuditEntry;
+use Opus125\AuditBundle\Serializer\AuditEntryNormalizer;
+use Opus125\AuditBundle\Tests\Support\TestSubjectKeyProvider;
 use PHPUnit\Framework\TestCase;
 
 final class AuditEntryNormalizerTest extends TestCase

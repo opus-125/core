@@ -6,7 +6,7 @@ namespace App\Audit;
 
 use App\Entity\Application;
 use Doctrine\ORM\EntityManagerInterface;
-use Opus\AuditBundle\Crypto\SubjectKeyProviderInterface;
+use Opus125\AuditBundle\Crypto\SubjectKeyProviderInterface;
 
 /**
  * Project override of the audit key provider: the key lives on the applicant

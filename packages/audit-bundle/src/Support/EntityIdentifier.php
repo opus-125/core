@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Support;
+namespace Opus125\AuditBundle\Support;
 
 use Doctrine\ORM\EntityManagerInterface;
 

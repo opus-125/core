@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Model;
+namespace Opus125\AuditBundle\Model;
 
-use Opus\AuditBundle\Enum\ActorType;
+use Opus125\AuditBundle\Enum\ActorType;
 
 /**
  * The audit record contract.

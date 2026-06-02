@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Recording;
+namespace Opus125\AuditBundle\Recording;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Opus\AuditBundle\Actor\ActorResolverInterface;
-use Opus\AuditBundle\Crypto\SubjectKeyProviderInterface;
-use Opus\AuditBundle\Enum\AuditAction;
-use Opus\AuditBundle\Event\AuditEntryRecorded;
-use Opus\AuditBundle\Integrity\CanonicalJsonEncoder;
-use Opus\AuditBundle\Integrity\HashCalculator;
-use Opus\AuditBundle\Metadata\AuditAttributeReader;
-use Opus\AuditBundle\Model\AuditEntryInterface;
-use Opus\AuditBundle\Support\EntityIdentifier;
+use Opus125\AuditBundle\Actor\ActorResolverInterface;
+use Opus125\AuditBundle\Crypto\SubjectKeyProviderInterface;
+use Opus125\AuditBundle\Enum\AuditAction;
+use Opus125\AuditBundle\Event\AuditEntryRecorded;
+use Opus125\AuditBundle\Integrity\CanonicalJsonEncoder;
+use Opus125\AuditBundle\Integrity\HashCalculator;
+use Opus125\AuditBundle\Metadata\AuditAttributeReader;
+use Opus125\AuditBundle\Model\AuditEntryInterface;
+use Opus125\AuditBundle\Support\EntityIdentifier;
 use Psr\Clock\ClockInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Uid\Uuid;
@@ -105,6 +105,32 @@ final class AuditRecorder
         }
 
         $this->append($stream, $action, $entityClass, $entityId, [], $context);
+    }
+
+    /**
+     * Record an applied workflow transition as a `transition` entry, chained
+     * into the subject's stream alongside its other audit entries. The places
+     * go into `changes`, the workflow and transition names into `context`.
+     *
+     * Called from within the flush, so the entry shares the transaction of the
+     * marking change it describes.
+     *
+     * @param list<string> $froms
+     * @param list<string> $tos
+     */
+    public function recordTransition(object $subject, string $workflow, string $transition, array $froms, array $tos): void
+    {
+        $class = $this->entityManager->getClassMetadata($subject::class)->getName();
+        $entityId = EntityIdentifier::of($this->entityManager, $subject);
+
+        $this->append(
+            $this->reader->stream($class),
+            AuditAction::Transition->value,
+            $class,
+            $entityId,
+            ['place' => ['old' => $froms, 'new' => $tos]],
+            ['workflow' => $workflow, 'transition' => $transition],
+        );
     }
 
     /**

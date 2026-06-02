@@ -35,7 +35,7 @@ export function App() {
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-sky-500/20 text-sky-300">
             ◆
           </span>
-          Opus
+          Opus125
         </a>
         <nav className="space-y-1 text-sm">
           {nav.map((item) => (
@@ -62,7 +62,7 @@ export function App() {
             Symfony 8 · PHP 8.4
           </p>
           <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
-            Opus bundles
+            Opus125 bundles
           </h1>
           <p className="mt-4 max-w-2xl text-lg text-slate-400">
             A family of Symfony bundles developed in a single monorepo, split into individual
@@ -72,7 +72,7 @@ export function App() {
 
         <Section id="overview" title="Overview">
           <p>
-            All Opus bundles are developed together in the{' '}
+            All Opus125 bundles are developed together in the{' '}
             <a className="text-sky-400 hover:underline" href="https://github.com/opus-125/core">
               opus-125/core
             </a>{' '}
@@ -112,7 +112,7 @@ export function App() {
 
         <Section id="installation" title="Installation">
           <p>Install any bundle through Composer:</p>
-          <CodeBlock lang="bash" code="composer require opus/audit-bundle" />
+          <CodeBlock lang="bash" code="composer require opus125/audit-bundle" />
           <p>
             With Symfony Flex the bundle registers itself. Otherwise enable it in{' '}
             <Code>config/bundles.php</Code>:
@@ -121,14 +121,14 @@ export function App() {
             lang="php"
             code={`return [
     // ...
-    Opus\\AuditBundle\\OpusAuditBundle::class => ['all' => true],
+    Opus125\\AuditBundle\\Opus125AuditBundle::class => ['all' => true],
 ];`}
           />
         </Section>
 
         <Section id="audit-bundle" title="AuditBundle">
           <p>
-            <Code>opus/audit-bundle</Code> is audit logging for Symfony with Doctrine: it records who
+            <Code>opus125/audit-bundle</Code> is audit logging for Symfony with Doctrine: it records who
             changed what, keeps the trail tamper-evident, and can encrypt personal fields so they can
             be erased on request (GDPR Art. 17) while the rest of the record is kept. You declare what
             to audit with attributes; configuration is infrastructure only.
@@ -160,7 +160,7 @@ export function App() {
           <CodeBlock
             lang="text"
             code={`packages/            One directory per bundle (a standalone Composer package)
-  audit-bundle/      opus/audit-bundle -> split to opus-125/audit-bundle
+  audit-bundle/      opus125/audit-bundle -> split to opus-125/audit-bundle
 demo/                Symfony 8 app integrating the bundles via a path repository
 docs/                This documentation site (Vite + React)
 .github/workflows/

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Command;
+namespace Opus125\AuditBundle\Command;
 
-use Opus\AuditBundle\Retention\Purger;
+use Opus125\AuditBundle\Retention\Purger;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

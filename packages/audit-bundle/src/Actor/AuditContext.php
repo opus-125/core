@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Actor;
+namespace Opus125\AuditBundle\Actor;
 
 /**
  * Ambient, request-scoped audit context.

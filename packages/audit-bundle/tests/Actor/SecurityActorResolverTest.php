@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Actor;
+namespace Opus125\AuditBundle\Tests\Actor;
 
-use Opus\AuditBundle\Actor\Actor;
-use Opus\AuditBundle\Actor\ActorInterface;
-use Opus\AuditBundle\Actor\AuditContext;
-use Opus\AuditBundle\Actor\SecurityActorResolver;
-use Opus\AuditBundle\Enum\ActorType;
+use Opus125\AuditBundle\Actor\Actor;
+use Opus125\AuditBundle\Actor\ActorInterface;
+use Opus125\AuditBundle\Actor\AuditContext;
+use Opus125\AuditBundle\Actor\SecurityActorResolver;
+use Opus125\AuditBundle\Enum\ActorType;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;

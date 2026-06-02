@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Crypto;
+namespace Opus125\AuditBundle\Crypto;
 
-use Opus\AuditBundle\Crypto\Exception\DecryptionFailedException;
+use Opus125\AuditBundle\Crypto\Exception\DecryptionFailedException;
 
 /**
  * Authenticated symmetric encryption used throughout crypto-shredding.

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Crypto;
+namespace Opus125\AuditBundle\Tests\Crypto;
 
-use Opus\AuditBundle\Crypto\Cipher;
-use Opus\AuditBundle\Crypto\Exception\DecryptionFailedException;
+use Opus125\AuditBundle\Crypto\Cipher;
+use Opus125\AuditBundle\Crypto\Exception\DecryptionFailedException;
 use PHPUnit\Framework\TestCase;
 
 final class CipherTest extends TestCase

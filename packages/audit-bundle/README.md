@@ -1,7 +1,7 @@
-# Opus AuditBundle
+# Opus125 AuditBundle
 
-[![Latest Stable Version](https://poser.pugx.org/opus/audit-bundle/v/stable)](https://packagist.org/packages/opus/audit-bundle)
-[![License](https://poser.pugx.org/opus/audit-bundle/license)](https://packagist.org/packages/opus/audit-bundle)
+[![Latest Stable Version](https://poser.pugx.org/opus125/audit-bundle/v/stable)](https://packagist.org/packages/opus125/audit-bundle)
+[![License](https://poser.pugx.org/opus125/audit-bundle/license)](https://packagist.org/packages/opus125/audit-bundle)
 
 Tamper-evident audit trail with GDPR-compliant crypto-shredding and retention
 for Symfony applications — the shared compliance spine for public-sector
@@ -15,7 +15,7 @@ software.
 ## Installation
 
 ```bash
-composer require opus/audit-bundle
+composer require opus125/audit-bundle
 ```
 
 If you are not using Symfony Flex, enable the bundle manually:
@@ -24,7 +24,7 @@ If you are not using Symfony Flex, enable the bundle manually:
 // config/bundles.php
 return [
     // ...
-    Opus\AuditBundle\OpusAuditBundle::class => ['all' => true],
+    Opus125\AuditBundle\Opus125AuditBundle::class => ['all' => true],
 ];
 ```
 

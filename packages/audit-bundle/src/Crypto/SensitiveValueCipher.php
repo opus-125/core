@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Crypto;
+namespace Opus125\AuditBundle\Crypto;
 
-use Opus\AuditBundle\Crypto\Exception\DecryptionFailedException;
+use Opus125\AuditBundle\Crypto\Exception\DecryptionFailedException;
 
 /**
  * Encrypts and decrypts a single `#[Sensitive]` value as a self-describing
@@ -19,9 +19,9 @@ final class SensitiveValueCipher
 {
     public const string REDACTED = '[redacted: erased]';
 
-    private const string ENVELOPE_MARKER = '__opus_enc';
+    private const string ENVELOPE_MARKER = '__opus125_enc';
     private const int ENVELOPE_VERSION = 1;
-    private const string AAD = 'opus-audit';
+    private const string AAD = 'opus125-audit';
 
     public function __construct(
         private readonly Cipher $cipher,

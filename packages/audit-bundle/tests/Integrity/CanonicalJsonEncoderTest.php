@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Integrity;
+namespace Opus125\AuditBundle\Tests\Integrity;
 
-use Opus\AuditBundle\Integrity\CanonicalJsonEncoder;
-use Opus\AuditBundle\Integrity\Exception\NonCanonicalizableValueException;
+use Opus125\AuditBundle\Integrity\CanonicalJsonEncoder;
+use Opus125\AuditBundle\Integrity\Exception\NonCanonicalizableValueException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

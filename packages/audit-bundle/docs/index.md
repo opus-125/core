@@ -1,4 +1,4 @@
-# Opus AuditBundle
+# Opus125 AuditBundle
 
 Audit logging for Symfony with Doctrine: it records who changed what, keeps the
 trail tamper-evident, and can encrypt personal fields so they can be erased on
@@ -26,7 +26,7 @@ request (GDPR Art. 17) while the rest of the record is kept.
 ## Installation
 
 ```bash
-composer require opus/audit-bundle
+composer require opus125/audit-bundle
 ```
 
 With Symfony Flex the bundle is enabled automatically; otherwise add it to
@@ -40,7 +40,7 @@ Create the `audit_entry` table with your usual migrations/schema tool.
 ## Usage
 
 ```php
-use Opus\AuditBundle\Attribute as Audit;
+use Opus125\AuditBundle\Attribute as Audit;
 
 #[Audit\Auditable]                 // record this entity (stream defaults to the class)
 #[Audit\Retention('10 years')]
@@ -63,6 +63,40 @@ $invoice->setStatus('open');
 $em->flush();   // the audit entry is written in the same flush
 ```
 
+### Workflow transitions
+
+If you drive a status field with the [Symfony Workflow component](https://symfony.com/doc/current/workflow.html),
+add `#[AuditableWorkflow]` to opt the entity's transitions into the same trail —
+no audit code in your workflow handlers:
+
+```php
+use Opus125\AuditBundle\Attribute as Audit;
+
+#[Audit\Auditable(stream: 'article')]
+#[Audit\AuditableWorkflow(marking: 'status')]   // 'status' is the workflow-marking field
+class Article
+{
+    private string $status = 'draft';
+}
+```
+
+```php
+$workflow->apply($article, 'submit');
+$em->flush();   // one `transition` entry written in the same flush/transaction
+```
+
+Each **applied** transition produces a single entry with `action = transition`:
+the from/to places in `changes['place']`, the workflow and transition names in
+`context`, the actor resolved as usual. Rejected guards and plain `can()` probes
+are never recorded — only transitions that actually happened.
+
+`marking:` names the field the workflow owns, so its change is logged once (as
+the richer transition entry) instead of also as a `status` field update; a
+direct edit to that field *without* a transition is still field-audited. Pass a
+`transitions: [...]` allow-list to audit only some transitions. Alternatively,
+flag a workflow `audited: true` in its metadata to track it without an entity
+attribute. The feature activates only when `symfony/workflow` is installed.
+
 Read the trail and decrypt for display/export via the repository and the
 Serializer:
 
@@ -83,6 +117,7 @@ $result = $em->getRepository(AuditEntry::class)->verify('App\\Entity\\Invoice');
 | Attribute | Effect | Default |
 |-----------|--------|---------|
 | `#[Auditable(stream?)]` | Entity is audited | not audited |
+| `#[AuditableWorkflow(marking?, transitions?)]` | Audit the entity's workflow transitions | not audited |
 | `#[AuditIgnore]` | Field never logged | logged |
 | `#[Sensitive]` | Field encrypted + erasable | plaintext |
 | `#[Retention('…')]` | Keep duration | keep forever |
@@ -119,7 +154,7 @@ final class UserKeyProvider implements SubjectKeyProviderInterface
 
 ```yaml
 services:
-    Opus\AuditBundle\Crypto\SubjectKeyProviderInterface: '@App\Audit\UserKeyProvider'
+    Opus125\AuditBundle\Crypto\SubjectKeyProviderInterface: '@App\Audit\UserKeyProvider'
 ```
 
 Erasure is then a normal domain operation (drop the stored key); the bundle
@@ -134,7 +169,7 @@ and point Doctrine at it — no bundle config:
 doctrine:
     orm:
         resolve_target_entities:
-            Opus\AuditBundle\Model\AuditEntryInterface: App\Entity\MyAuditEntry
+            Opus125\AuditBundle\Model\AuditEntryInterface: App\Entity\MyAuditEntry
 ```
 
 ### Events

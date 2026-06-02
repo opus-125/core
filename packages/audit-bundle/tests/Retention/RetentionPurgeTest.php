@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Retention;
+namespace Opus125\AuditBundle\Tests\Retention;
 
-use Opus\AuditBundle\Metadata\AuditAttributeReader;
-use Opus\AuditBundle\Retention\AttributeRetentionPolicy;
-use Opus\AuditBundle\Retention\Purger;
-use Opus\AuditBundle\Retention\RetentionPolicyInterface;
-use Opus\AuditBundle\Tests\Fixtures\Customer;
-use Opus\AuditBundle\Tests\Fixtures\Invoice;
-use Opus\AuditBundle\Tests\Support\AuditIntegrationTestCase;
+use Opus125\AuditBundle\Metadata\AuditAttributeReader;
+use Opus125\AuditBundle\Retention\AttributeRetentionPolicy;
+use Opus125\AuditBundle\Retention\Purger;
+use Opus125\AuditBundle\Retention\RetentionPolicyInterface;
+use Opus125\AuditBundle\Tests\Fixtures\Customer;
+use Opus125\AuditBundle\Tests\Fixtures\Invoice;
+use Opus125\AuditBundle\Tests\Support\AuditIntegrationTestCase;
 
 final class RetentionPurgeTest extends AuditIntegrationTestCase
 {
