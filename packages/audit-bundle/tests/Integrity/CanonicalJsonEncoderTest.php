@@ -112,12 +112,12 @@ final class CanonicalJsonEncoderTest extends TestCase
         self::assertSame('"😀"', $this->encoder->encode('😀'));
     }
 
-    public function testDateTimeIsNormalisedToUtcMicroseconds(): void
+    public function testDateTimeIsNormalisedToUtc(): void
     {
         $utc = new \DateTimeImmutable('2026-06-01 10:30:00.123456', new \DateTimeZone('UTC'));
         $vienna = new \DateTimeImmutable('2026-06-01 12:30:00.123456', new \DateTimeZone('Europe/Vienna'));
 
-        self::assertSame('"2026-06-01T10:30:00.123456Z"', $this->encoder->encode($utc));
+        self::assertSame('"2026-06-01T10:30:00.123+00:00"', $this->encoder->encode($utc));
         // Same instant, different zone → identical canonical bytes.
         self::assertSame($this->encoder->encode($utc), $this->encoder->encode($vienna));
     }
@@ -126,7 +126,7 @@ final class CanonicalJsonEncoderTest extends TestCase
     {
         $dt = new \DateTime('2026-06-01 10:30:00.000000', new \DateTimeZone('UTC'));
 
-        self::assertSame('"2026-06-01T10:30:00.000000Z"', $this->encoder->encode($dt));
+        self::assertSame('"2026-06-01T10:30:00.000+00:00"', $this->encoder->encode($dt));
     }
 
     public function testBackedEnumCollapsesToValue(): void
@@ -238,7 +238,7 @@ final class CanonicalJsonEncoderTest extends TestCase
         $payload = [
             'stream_id' => 'rechnung',
             'sequence_no' => 1,
-            'occurred_at' => new \DateTimeImmutable('2026-06-01T10:30:00.123456Z'),
+            'occurred_at' => new \DateTimeImmutable('2026-06-01T10:30:00.123+00:00'),
             'action' => 'update',
             'changes' => [
                 'status' => ['old' => 'draft', 'new' => 'open'],
@@ -251,7 +251,7 @@ final class CanonicalJsonEncoderTest extends TestCase
 
         $expected = '{"action":"update","changes":{"betrag":{"new":200,"old":100},'
             .'"status":{"new":"open","old":"draft"}},"flagged":false,"note":null,'
-            .'"occurred_at":"2026-06-01T10:30:00.123456Z","rate":1.5,'
+            .'"occurred_at":"2026-06-01T10:30:00.123+00:00","rate":1.5,'
             .'"sequence_no":1,"stream_id":"rechnung"}';
 
         self::assertSame($expected, $this->encoder->encode($payload));

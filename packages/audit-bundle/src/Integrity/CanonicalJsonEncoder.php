@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Opus\AuditBundle\Integrity;
 
 use Opus\AuditBundle\Integrity\Exception\NonCanonicalizableValueException;
-use Opus\AuditBundle\Support\CanonicalTimestamp;
 
 /**
  * Deterministic, canonical JSON serialisation for the audit hash-chain.
@@ -22,9 +21,10 @@ use Opus\AuditBundle\Support\CanonicalTimestamp;
  *    so the empty array `[]` encodes as an empty JSON array.
  *  - **Floats keep an explicit fraction** (`1.0` stays `1.0`, distinct from the
  *    integer `1`) and non-finite floats are rejected.
- *  - **`DateTimeInterface`** is normalised to UTC and rendered as RFC 3339 with
- *    fixed six-digit microseconds (`2026-06-01T10:30:00.123456Z`), so two
- *    instants that are equal but carry different time zones hash identically.
+ *  - **`DateTimeInterface`** is normalised to UTC and rendered with the native
+ *    {@see \DateTimeInterface::RFC3339_EXTENDED} format
+ *    (`2026-06-01T10:30:00.123+00:00`), so two instants that are equal but carry
+ *    different time zones hash identically.
  *  - **`BackedEnum`** collapses to its backing value, a non-backed `UnitEnum`
  *    to its name.
  *  - **`JsonSerializable`** is expanded via its `jsonSerialize()` payload.
@@ -121,7 +121,9 @@ final class CanonicalJsonEncoder
     private function normalizeObject(object $value, string $path): mixed
     {
         if ($value instanceof \DateTimeInterface) {
-            return CanonicalTimestamp::format($value);
+            return \DateTimeImmutable::createFromInterface($value)
+                ->setTimezone(new \DateTimeZone('UTC'))
+                ->format(\DateTimeInterface::RFC3339_EXTENDED);
         }
 
         if ($value instanceof \BackedEnum) {

@@ -8,7 +8,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Opus\AuditBundle\Crypto\SensitiveValueCipher;
 use Opus\AuditBundle\Metadata\AuditAttributeReader;
 use Opus\AuditBundle\Metadata\FieldSanitizer;
-use Opus\AuditBundle\Support\CanonicalTimestamp;
 use Opus\AuditBundle\Support\EntityIdentifier;
 
 /**
@@ -110,7 +109,9 @@ final class ChangeSetNormalizer
         }
 
         if ($value instanceof \DateTimeInterface) {
-            return CanonicalTimestamp::format($value);
+            return \DateTimeImmutable::createFromInterface($value)
+                ->setTimezone(new \DateTimeZone('UTC'))
+                ->format(\DateTimeInterface::RFC3339_EXTENDED);
         }
 
         if (\is_object($value)) {

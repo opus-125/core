@@ -195,7 +195,7 @@ trait AuditEntryTrait
             'id' => $this->id,
             'stream' => $this->stream,
             'sequence_no' => $this->sequenceNo,
-            'occurred_at' => $this->occurredAt->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d\TH:i:s\Z'),
+            'occurred_at' => $this->occurredAt->setTimezone(new \DateTimeZone('UTC'))->format(\DateTimeInterface::RFC3339_EXTENDED),
             'action' => $this->action,
             'entity_class' => $this->entityClass,
             'entity_id' => $this->entityId,
