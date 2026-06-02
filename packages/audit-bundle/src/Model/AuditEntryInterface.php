@@ -9,10 +9,10 @@ use Opus\AuditBundle\Enum\ActorType;
 /**
  * The audit record contract.
  *
- * The bundle ships {@see AuditEntry} as the default Doctrine entity, but a
- * project may use its own entity instead — map it, implement this interface
- * (most easily by extending {@see AbstractAuditEntry}) and point
- * `opus_audit.entry_class` at it.
+ * The bundle ships {@see AuditEntry} as the default Doctrine entity. To use your
+ * own table, map an entity that implements this interface (most easily
+ * `use AuditEntryTrait;`) and point the interface at it with Doctrine
+ * `resolve_target_entities`.
  *
  * One entry type covers both mutating changes (`create`/`update`/`delete`) and
  * non-mutating actions (e.g. `download`); the latter simply have an action name
@@ -60,4 +60,26 @@ interface AuditEntryInterface
      * @return array<string, mixed>
      */
     public function hashableData(): array;
+
+    /**
+     * @param array<string, mixed> $changes
+     * @param array<string, mixed> $context
+     */
+    public function initialize(
+        string $id,
+        string $stream,
+        \DateTimeImmutable $occurredAt,
+        string $action,
+        ?string $entityClass,
+        ?string $entityId,
+        ActorType $actorType,
+        ?string $actorId,
+        ?string $actorLabel,
+        array $changes,
+        array $context,
+    ): void;
+
+    public function assignSequence(int $sequenceNo, string $previousHash): void;
+
+    public function setHash(string $hash): void;
 }

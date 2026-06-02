@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Opus\AuditBundle\Tests\Retention;
 
-use Opus\AuditBundle\Metadata\AuditMetadataFactory;
-use Opus\AuditBundle\Model\AuditEntry;
+use Opus\AuditBundle\Metadata\AuditAttributeReader;
 use Opus\AuditBundle\Retention\AttributeRetentionPolicy;
 use Opus\AuditBundle\Retention\Purger;
 use Opus\AuditBundle\Retention\RetentionPolicyInterface;
@@ -39,17 +38,13 @@ final class RetentionPurgeTest extends AuditIntegrationTestCase
             }
         };
 
-        $purger = new Purger(self::$em, $keepForever, $this->clock, AuditEntry::class);
-
-        self::assertSame(0, $purger->purge(new \DateTimeImmutable(self::NOW)));
+        self::assertSame(0, new Purger(self::$em, $keepForever, $this->clock)->purge(new \DateTimeImmutable(self::NOW)));
         self::assertSame(1, $this->countEntries());
     }
 
     public function testAttributeRetentionResolvesTheDeclaredDuration(): void
     {
-        $policy = new AttributeRetentionPolicy(new AuditMetadataFactory());
-
-        $interval = $policy->retentionFor(Invoice::class);
+        $interval = new AttributeRetentionPolicy(new AuditAttributeReader())->retentionFor(Invoice::class);
 
         self::assertNotNull($interval);
         self::assertSame(10, $interval->y);

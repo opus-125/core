@@ -35,7 +35,6 @@ class Application
     #[ORM\Column(type: Types::TEXT)]
     private string $note = '';
 
-    #[Audit\DataSubject]
     #[ORM\ManyToOne(targetEntity: Citizen::class)]
     #[ORM\JoinColumn(nullable: false)]
     private Citizen $applicant;

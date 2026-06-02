@@ -7,7 +7,6 @@ namespace Opus\AuditBundle\Tests\Support;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Opus\AuditBundle\Model\AuditEntry;
-use Opus\AuditBundle\Model\ShreddedSubject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -62,6 +61,6 @@ abstract class DatabaseTestCase extends TestCase
      */
     private static function allEntities(): array
     {
-        return [AuditEntry::class, ShreddedSubject::class, ...static::fixtureEntities()];
+        return [AuditEntry::class, ...static::fixtureEntities()];
     }
 }

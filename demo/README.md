@@ -33,8 +33,12 @@ Open <http://127.0.0.1:8000/>:
 
 ## How it is wired
 
-Standard DoctrineBundle: Doctrine is configured in
-[`config/packages/doctrine.yaml`](config/packages/doctrine.yaml) and the audit
-bundle in [`config/packages/opus_audit.yaml`](config/packages/opus_audit.yaml).
-The bundle registers its entity mapping and `onFlush` listener automatically, so
-`src/` contains only the domain entities, a controller and a setup command.
+Standard DoctrineBundle ([`config/packages/doctrine.yaml`](config/packages/doctrine.yaml));
+the audit bundle needs **no configuration** — it maps its entity and registers
+its listener automatically. The demo only adds:
+
+- domain entities (`Application`, `Citizen`);
+- [`src/Audit/CitizenKeyProvider.php`](src/Audit/CitizenKeyProvider.php) — a
+  custom `SubjectKeyProviderInterface` that keeps the audit key on the `Citizen`
+  and returns `null` once anonymised, so erasure crypto-shreds the note;
+- a controller and a setup command.

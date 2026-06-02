@@ -9,20 +9,25 @@ use Doctrine\ORM\Mapping as ORM;
 use Opus\AuditBundle\Enum\ActorType;
 
 /**
- * Mapped-superclass implementation of {@see AuditEntryInterface}.
+ * Composable implementation of {@see AuditEntryInterface}.
  *
- * Plain Doctrine — written through the EntityManager like any other entity, so
- * it works on every Doctrine DBAL platform. Each entry chains onto its
- * predecessor in the same stream via {@see $hash}/{@see $previousHash}, making
- * the trail tamper-evident; the hash is computed over {@see hashableData()}.
+ * Use it on your own entity if you want a custom audit table:
  *
- * Two fields hold personal data and may be stored encrypted (as an envelope):
- * the `#[Sensitive]` values inside {@see $changes} and the {@see $actorLabel}.
- * Crypto-shredding destroys the key, never the ciphertext, so the chain stays
- * valid after erasure.
+ * ```php
+ * #[ORM\Entity]
+ * class MyAuditEntry implements AuditEntryInterface { use AuditEntryTrait; }
+ * ```
+ *
+ * and point the interface at it with Doctrine `resolve_target_entities`. The
+ * bundle ships {@see AuditEntry} as the default.
+ *
+ * Each entry chains onto its predecessor in the same stream
+ * ({@see $hash}/{@see $previousHash}) so the trail is tamper-evident; the hash
+ * covers {@see hashableData()}. `#[Sensitive]` values inside {@see $changes} are
+ * stored encrypted, keyed by the audited entity's subject, so erasing the
+ * subject's key renders them unreadable without breaking the chain.
  */
-#[ORM\MappedSuperclass]
-abstract class AbstractAuditEntry implements AuditEntryInterface
+trait AuditEntryTrait
 {
     #[ORM\Id]
     #[ORM\Column(type: 'guid')]
@@ -55,15 +60,11 @@ abstract class AbstractAuditEntry implements AuditEntryInterface
     #[ORM\Column(name: 'actor_label', type: Types::TEXT, nullable: true)]
     protected ?string $actorLabel = null;
 
-    /**
-     * @var array<string, mixed>
-     */
+    /** @var array<string, mixed> */
     #[ORM\Column(type: Types::JSON)]
     protected array $changes = [];
 
-    /**
-     * @var array<string, mixed>
-     */
+    /** @var array<string, mixed> */
     #[ORM\Column(type: Types::JSON)]
     protected array $context = [];
 
@@ -143,8 +144,6 @@ abstract class AbstractAuditEntry implements AuditEntryInterface
         return $this->hash;
     }
 
-    // -- Construction (used by the recorder before the entry is persisted) ----
-
     /**
      * @param array<string, mixed> $changes
      * @param array<string, mixed> $context
@@ -176,8 +175,8 @@ abstract class AbstractAuditEntry implements AuditEntryInterface
     }
 
     /**
-     * Assign the stream position before hashing — `sequence_no` is part of the
-     * hashed payload, so it must be set first.
+     * Set the stream position before hashing — `sequence_no` is part of the
+     * hashed payload, so it must be assigned first.
      */
     public function assignSequence(int $sequenceNo, string $previousHash): void
     {
@@ -190,14 +189,6 @@ abstract class AbstractAuditEntry implements AuditEntryInterface
         $this->hash = $hash;
     }
 
-    /**
-     * The deterministic payload the hash is computed over — the single
-     * definition shared by writing and verification. Pins every value to a
-     * precise type (sequence as int, the instant as a second-precision UTC
-     * string) so a row re-reads and re-hashes identically.
-     *
-     * @return array<string, mixed>
-     */
     public function hashableData(): array
     {
         return [

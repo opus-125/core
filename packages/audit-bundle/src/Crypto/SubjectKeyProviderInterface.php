@@ -5,29 +5,24 @@ declare(strict_types=1);
 namespace Opus\AuditBundle\Crypto;
 
 /**
- * Supplies the symmetric key that protects a data subject's sensitive audit
- * values — the single seam projects override to control crypto-shredding.
+ * Decides the encryption key for an audited entity's `#[Sensitive]` values —
+ * the single seam projects override to control crypto-shredding.
  *
- * The default derives a key per subject from the application secret. Override
- * the service (alias this interface to your own) to, for example, store a random
- * key per subject and physically destroy it on erasure for a stronger
- * guarantee.
+ * Return a 32-byte key while the subject's data may be read, or **null** once it
+ * has been erased/anonymised. Returning null is the whole shredding mechanism:
+ * the ciphertext stays in the audit row (so the hash-chain stays valid) but the
+ * value can no longer be decrypted and reads render it redacted.
  *
- * Crypto-shredding works by making {@see keyForSubject()} return null: the
- * ciphertext stays in place (so the hash-chain remains valid) but the value can
- * no longer be decrypted.
+ * The default derives the key from the application secret. A typical project
+ * override stores a random key on the entity (e.g. the `User`) and returns it
+ * until the entity is anonymised, then null — so erasure is a normal domain
+ * operation with no bundle-owned state.
  */
 interface SubjectKeyProviderInterface
 {
     /**
-     * The 32-byte key for a subject, or null if the subject has been shredded.
+     * @param class-string $entityClass the audited entity's class
+     * @param string       $entityId    the audited entity's identifier
      */
-    public function keyForSubject(string $subjectId): ?string;
-
-    /**
-     * Crypto-shred a subject: make its key permanently unavailable. Idempotent.
-     */
-    public function shred(string $subjectId): void;
-
-    public function isShredded(string $subjectId): bool;
+    public function keyFor(string $entityClass, string $entityId): ?string;
 }

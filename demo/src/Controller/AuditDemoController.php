@@ -9,7 +9,6 @@ use App\Entity\Citizen;
 use Doctrine\ORM\EntityManagerInterface;
 use Opus\AuditBundle\Actor\Actor;
 use Opus\AuditBundle\Actor\AuditContext;
-use Opus\AuditBundle\Crypto\SubjectKeyProviderInterface;
 use Opus\AuditBundle\Model\AuditEntry;
 use Opus\AuditBundle\Repository\AuditEntryRepository;
 use Opus\AuditBundle\Serializer\AuditEntryNormalizer;
@@ -28,7 +27,6 @@ final class AuditDemoController extends AbstractController
         private readonly EntityManagerInterface $em,
         private readonly AuditEntryNormalizer $normalizer,
         private readonly AuditContext $auditContext,
-        private readonly SubjectKeyProviderInterface $keyProvider,
     ) {
     }
 
@@ -78,8 +76,13 @@ final class AuditDemoController extends AbstractController
     #[Route('/citizens/{id}/shred', name: 'app_shred', methods: ['POST'])]
     public function shred(string $id): Response
     {
-        // Erase everyone's data about this citizen (GDPR Art. 17).
-        $this->keyProvider->shred(Citizen::class.'#'.$id);
+        // Anonymise the citizen (GDPR Art. 17): dropping their key crypto-shreds
+        // their sensitive audit values. Just a normal domain operation.
+        $citizen = $this->em->getRepository(Citizen::class)->find($id);
+        if ($citizen instanceof Citizen) {
+            $citizen->anonymize();
+            $this->em->flush();
+        }
 
         return $this->redirectToRoute('app_index');
     }

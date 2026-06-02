@@ -10,15 +10,13 @@ use Opus\AuditBundle\Actor\AuditContext;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
- * Assembles the circumstances recorded alongside a change.
+ * Assembles the circumstances recorded alongside a change: the ambient context
+ * bag (correlation id, reason, …), the current request's route/method/IP/
+ * user-agent when available, and any non-identifying actor attributes (e.g. an
+ * impersonation marker).
  *
- * Splits the result into a *public* part (route, method, correlation id,
- * reason, impersonation marker, app annotations) and a *sensitive* part
- * (client IP, user-agent) that the recorder encrypts under the actor's subject
- * key — the acting person's network identifiers are personal data too.
- *
- * The {@see RequestStack} is optional, so the provider works unchanged in CLI
- * and Messenger contexts where there is no request.
+ * The {@see RequestStack} is optional, so this works unchanged in CLI and
+ * Messenger contexts.
  */
 final class AuditContextProvider
 {
@@ -29,39 +27,37 @@ final class AuditContextProvider
     }
 
     /**
-     * @return array{0: array<string, mixed>, 1: array<string, scalar>} [public, sensitive]
+     * @return array<string, mixed>
      */
     public function gather(ActorInterface $actor): array
     {
-        $public = $this->context->toArray();
+        $context = $this->context->toArray();
 
-        $attributes = $actor instanceof Actor ? $actor->attributes : [];
-        foreach ($attributes as $key => $value) {
-            if ('' !== (string) $value) {
-                $public[$key] = $value;
+        if ($actor instanceof Actor) {
+            foreach ($actor->attributes as $key => $value) {
+                if ('' !== (string) $value) {
+                    $context[$key] = $value;
+                }
             }
         }
-
-        $sensitive = [];
 
         $request = $this->requestStack?->getCurrentRequest();
         if (null !== $request) {
             $route = $request->attributes->get('_route');
             if (\is_string($route)) {
-                $public['route'] = $route;
+                $context['route'] = $route;
             }
-            $public['method'] = $request->getMethod();
-
+            $context['method'] = $request->getMethod();
             $ip = $request->getClientIp();
             if (null !== $ip) {
-                $sensitive['ip'] = $ip;
+                $context['ip'] = $ip;
             }
             $userAgent = $request->headers->get('User-Agent');
             if (null !== $userAgent) {
-                $sensitive['user_agent'] = $userAgent;
+                $context['user_agent'] = $userAgent;
             }
         }
 
-        return [$public, $sensitive];
+        return $context;
     }
 }

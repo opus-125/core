@@ -4,24 +4,25 @@ declare(strict_types=1);
 
 namespace Opus\AuditBundle\Retention;
 
-use Opus\AuditBundle\Metadata\AuditMetadataFactory;
+use Opus\AuditBundle\Metadata\AuditAttributeReader;
 
 /**
  * Default {@see RetentionPolicyInterface}: the duration declared by
- * `#[Retention(...)]` on the entity, falling back to a configured global
- * default, and to "keep forever" when neither is set.
+ * `#[Retention(...)]` on the entity, and "keep forever" when none is set.
+ *
+ * Need a global default or tiered rules? Replace this service with your own
+ * implementation of {@see RetentionPolicyInterface}.
  */
 final class AttributeRetentionPolicy implements RetentionPolicyInterface
 {
     public function __construct(
-        private readonly AuditMetadataFactory $metadataFactory,
-        private readonly ?string $defaultDuration = null,
+        private readonly AuditAttributeReader $reader,
     ) {
     }
 
     public function retentionFor(string $entityClass): ?\DateInterval
     {
-        $duration = $this->metadataFactory->getMetadata($entityClass)->retention ?? $this->defaultDuration;
+        $duration = $this->reader->retention($entityClass);
 
         if (null === $duration) {
             return null;

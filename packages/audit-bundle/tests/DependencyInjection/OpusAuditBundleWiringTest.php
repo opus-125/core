@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Opus\AuditBundle\Tests\DependencyInjection;
 
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Opus\AuditBundle\Command\PurgeCommand;
 use Opus\AuditBundle\Crypto\SubjectKeyProviderInterface;
-use Opus\AuditBundle\Model\AuditEntry;
 use Opus\AuditBundle\OpusAuditBundle;
 use Opus\AuditBundle\Recording\AuditRecorder;
 use Opus\AuditBundle\Recording\DoctrineAuditListener;
@@ -19,8 +17,8 @@ use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
- * Compiles the bundle's container against stub Doctrine services (which a real
- * app supplies via DoctrineBundle) to prove the service graph wires up.
+ * Compiles the bundle's container against a stub EntityManager (which a real app
+ * supplies via DoctrineBundle) to prove the service graph wires up.
  */
 final class OpusAuditBundleWiringTest extends TestCase
 {
@@ -29,8 +27,6 @@ final class OpusAuditBundleWiringTest extends TestCase
         $container = new ContainerBuilder();
         $container->setParameter('kernel.environment', 'test');
         $container->setParameter('kernel.secret', 'test-secret');
-
-        $container->register(Connection::class, Connection::class)->setSynthetic(true)->setPublic(true);
         $container->register(EntityManagerInterface::class, EntityManagerInterface::class)->setSynthetic(true)->setPublic(true);
 
         $bundle = new OpusAuditBundle();
@@ -72,10 +68,5 @@ final class OpusAuditBundleWiringTest extends TestCase
         $tags = $this->compile()->getDefinition(DoctrineAuditListener::class)->getTag('doctrine.event_listener');
 
         self::assertSame([['event' => 'onFlush']], $tags);
-    }
-
-    public function testEntryClassDefaultsToTheBundledEntity(): void
-    {
-        self::assertSame(AuditEntry::class, $this->compile()->getParameter('opus_audit.entry_class'));
     }
 }

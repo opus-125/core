@@ -8,7 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\UnitOfWork;
 use Opus\AuditBundle\Enum\AuditAction;
-use Opus\AuditBundle\Metadata\AuditMetadataFactory;
+use Opus\AuditBundle\Metadata\AuditAttributeReader;
 use Opus\AuditBundle\Support\EntityIdentifier;
 
 /**
@@ -28,7 +28,7 @@ final class DoctrineAuditListener
 {
     public function __construct(
         private readonly AuditRecorder $recorder,
-        private readonly AuditMetadataFactory $metadataFactory,
+        private readonly AuditAttributeReader $reader,
     ) {
     }
 
@@ -171,6 +171,6 @@ final class DoctrineAuditListener
 
     private function isAudited(EntityManagerInterface $em, object $entity): bool
     {
-        return $this->metadataFactory->isAuditable($em->getClassMetadata($entity::class)->getName());
+        return $this->reader->isAuditable($em->getClassMetadata($entity::class)->getName());
     }
 }

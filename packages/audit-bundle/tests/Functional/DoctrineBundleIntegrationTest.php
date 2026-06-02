@@ -8,7 +8,6 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Opus\AuditBundle\Model\AuditEntry;
-use Opus\AuditBundle\Model\ShreddedSubject;
 use Opus\AuditBundle\OpusAuditBundle;
 use Opus\AuditBundle\Tests\Fixtures\Customer;
 use Opus\AuditBundle\Tests\Fixtures\Invoice;
@@ -119,7 +118,7 @@ final class DoctrineBundleIntegrationTest extends TestCase
     {
         $tool = new SchemaTool($em);
         $classes = array_map($em->getClassMetadata(...), [
-            AuditEntry::class, ShreddedSubject::class, Customer::class, Invoice::class, Tag::class,
+            AuditEntry::class, Customer::class, Invoice::class, Tag::class,
         ]);
         $tool->dropSchema($classes);
         $tool->createSchema($classes);

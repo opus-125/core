@@ -10,6 +10,7 @@
         "doctrine/orm": "^3.3",
         "doctrine/persistence": "^3.4 || ^4.0",
         "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
         "symfony/clock": "^8.0",
         "symfony/config": "^8.0",
         "symfony/console": "^8.0",

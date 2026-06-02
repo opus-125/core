@@ -8,3 +8,8 @@ services:
         exclude:
             - '../src/Kernel.php'
             - '../src/Entity/'
+
+    # Use the project's own key provider (key stored on the Citizen) instead of
+    # the bundle's APP_SECRET-derived default — this is how crypto-shredding is
+    # customised: implement the interface and alias it.
+    Opus\AuditBundle\Crypto\SubjectKeyProviderInterface: '@App\Audit\CitizenKeyProvider'

@@ -9,7 +9,6 @@ use App\Entity\Citizen;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Opus\AuditBundle\Model\AuditEntry;
-use Opus\AuditBundle\Model\ShreddedSubject;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -34,7 +33,7 @@ final class SetupCommand extends Command
 
         $tool = new SchemaTool($this->em);
         $classes = array_map($this->em->getClassMetadata(...), [
-            Application::class, Citizen::class, AuditEntry::class, ShreddedSubject::class,
+            Application::class, Citizen::class, AuditEntry::class,
         ]);
         $tool->dropSchema($classes);
         $tool->createSchema($classes);

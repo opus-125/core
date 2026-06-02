@@ -10,7 +10,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Opus\AuditBundle\Attribute\Auditable;
 use Opus\AuditBundle\Attribute\AuditIgnore;
-use Opus\AuditBundle\Attribute\DataSubject;
 use Opus\AuditBundle\Attribute\Retention;
 use Opus\AuditBundle\Attribute\Sensitive;
 use Symfony\Component\Uid\Uuid;
@@ -38,7 +37,6 @@ class Invoice
     #[ORM\Column(type: Types::STRING)]
     private string $customerName;
 
-    #[DataSubject]
     #[ORM\ManyToOne(targetEntity: Customer::class)]
     #[ORM\JoinColumn(nullable: false)]
     private Customer $customer;

@@ -11,7 +11,10 @@ use Doctrine\DBAL\Tools\DsnParser;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
+use Doctrine\ORM\Tools\ResolveTargetEntityListener;
 use Doctrine\ORM\Tools\SchemaTool;
+use Opus\AuditBundle\Model\AuditEntry;
+use Opus\AuditBundle\Model\AuditEntryInterface;
 
 /**
  * Bootstraps a real Doctrine ORM EntityManager against the test PostgreSQL
@@ -49,6 +52,13 @@ final class OrmFactory
         $config->enableNativeLazyObjects(true);
 
         $connection ??= self::createConnection();
+
+        // Resolve the audit entry interface to the default entity, like
+        // DoctrineBundle's resolve_target_entities does in a real app.
+        $eventManager ??= new EventManager();
+        $resolver = new ResolveTargetEntityListener();
+        $resolver->addResolveTargetEntity(AuditEntryInterface::class, AuditEntry::class, []);
+        $eventManager->addEventSubscriber($resolver);
 
         return new EntityManager($connection, $config, $eventManager);
     }

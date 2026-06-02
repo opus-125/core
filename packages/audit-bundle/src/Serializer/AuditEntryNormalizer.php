@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Opus\AuditBundle\Serializer;
 
-use Opus\AuditBundle\Crypto\CryptoShredder;
+use Opus\AuditBundle\Crypto\SensitiveValueCipher;
+use Opus\AuditBundle\Crypto\SubjectKeyProviderInterface;
 use Opus\AuditBundle\Model\AuditEntryInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
@@ -12,16 +13,16 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  * Serializer normalizer for {@see AuditEntryInterface}.
  *
  * Produces a plain, export-ready array and transparently decrypts `#[Sensitive]`
- * envelopes in the changes/context and the actor label — shredded values come
- * back as {@see CryptoShredder::REDACTED}, never as cleartext and never throwing.
- * Use the Symfony Serializer (`$serializer->normalize($entry)` /
- * `serialize($entries, 'json'|'csv')`) for any export need; the bundle ships no
- * export command of its own.
+ * values using the key the {@see SubjectKeyProviderInterface} returns for the
+ * entry's subject (its audited entity). Erased values come back as
+ * {@see SensitiveValueCipher::REDACTED}, never as cleartext and never throwing.
+ * Use the Symfony Serializer for any export need.
  */
 final class AuditEntryNormalizer implements NormalizerInterface
 {
     public function __construct(
-        private readonly CryptoShredder $shredder,
+        private readonly SubjectKeyProviderInterface $keyProvider,
+        private readonly SensitiveValueCipher $cipher,
     ) {
     }
 
@@ -36,6 +37,8 @@ final class AuditEntryNormalizer implements NormalizerInterface
             throw new \InvalidArgumentException('Expected an AuditEntryInterface.');
         }
 
+        $key = $this->keyFor($data);
+
         return [
             'id' => $data->getId(),
             'stream' => $data->getStream(),
@@ -46,9 +49,9 @@ final class AuditEntryNormalizer implements NormalizerInterface
             'entity_id' => $data->getEntityId(),
             'actor_type' => $data->getActorType()->value,
             'actor_id' => $data->getActorId(),
-            'actor_label' => $this->decryptLabel($data->getActorLabel()),
-            'changes' => $this->decryptMap($data->getChanges()),
-            'context' => $this->decryptMap($data->getContext()),
+            'actor_label' => $data->getActorLabel(),
+            'changes' => $this->decryptMap($data->getChanges(), $key),
+            'context' => $this->decryptMap($data->getContext(), $key),
             'hash' => $data->getHash(),
         ];
     }
@@ -59,7 +62,7 @@ final class AuditEntryNormalizer implements NormalizerInterface
     }
 
     /**
-     * @return array<class-string|'*'|'object'|string, bool|null>
+     * @return array<class-string, true>
      */
     public function getSupportedTypes(?string $format): array
     {
@@ -71,35 +74,32 @@ final class AuditEntryNormalizer implements NormalizerInterface
      *
      * @return array<string, mixed>
      */
-    public function decryptMap(array $map): array
+    public function decryptMap(array $map, ?string $key): array
     {
-        return array_map($this->decrypt(...), $map);
+        return array_map(fn (mixed $value): mixed => $this->decrypt($value, $key), $map);
     }
 
-    public function decryptLabel(?string $label): ?string
+    private function keyFor(AuditEntryInterface $entry): ?string
     {
-        if (null === $label) {
+        $class = $entry->getEntityClass();
+        $id = $entry->getEntityId();
+
+        if (null === $class || null === $id || !class_exists($class)) {
             return null;
         }
 
-        $decoded = json_decode($label, true);
-        if (\is_array($decoded) && CryptoShredder::isEnvelope($decoded)) {
-            $value = $this->shredder->decryptValue($decoded);
-
-            return \is_string($value) ? $value : (string) json_encode($value, \JSON_THROW_ON_ERROR);
-        }
-
-        return $label;
+        return $this->keyProvider->keyFor($class, $id);
     }
 
-    private function decrypt(mixed $value): mixed
+    private function decrypt(mixed $value, ?string $key): mixed
     {
-        if (\is_array($value) && CryptoShredder::isEnvelope($value)) {
-            return $this->shredder->decryptValue($value);
+        if (SensitiveValueCipher::isEnvelope($value)) {
+            /* @var array<string, mixed> $value */
+            return $this->cipher->decrypt($value, $key);
         }
 
         if (\is_array($value)) {
-            return array_map($this->decrypt(...), $value);
+            return array_map(fn (mixed $v): mixed => $this->decrypt($v, $key), $value);
         }
 
         return $value;
