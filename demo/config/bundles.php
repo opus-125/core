@@ -6,5 +6,5 @@ return [
     Symfony\Bundle\FrameworkBundle\FrameworkBundle::class => ['all' => true],
     Symfony\Bundle\TwigBundle\TwigBundle::class => ['all' => true],
     Doctrine\Bundle\DoctrineBundle\DoctrineBundle::class => ['all' => true],
-    Opus\AuditBundle\OpusAuditBundle::class => ['all' => true],
+    Opus125\AuditBundle\Opus125AuditBundle::class => ['all' => true],
 ];

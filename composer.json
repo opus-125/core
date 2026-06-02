@@ -1,6 +1,6 @@
 {
-    "name": "opus/monorepo",
-    "description": "Development monorepo for the Opus Symfony bundles.",
+    "name": "opus125/monorepo",
+    "description": "Development monorepo for the Opus125 Symfony bundles.",
     "type": "project",
     "license": "MIT",
     "require": {
@@ -28,19 +28,20 @@
         "phpunit/phpunit": "^12.0",
         "symfony/framework-bundle": "^8.0",
         "symfony/var-dumper": "^8.0",
+        "symfony/workflow": "^8.0",
         "symplify/monorepo-builder": "^12.5"
     },
     "replace": {
-        "opus/audit-bundle": "self.version"
+        "opus125/audit-bundle": "self.version"
     },
     "autoload": {
         "psr-4": {
-            "Opus\\AuditBundle\\": "packages/audit-bundle/src/"
+            "Opus125\\AuditBundle\\": "packages/audit-bundle/src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Opus\\AuditBundle\\Tests\\": "packages/audit-bundle/tests/"
+            "Opus125\\AuditBundle\\Tests\\": "packages/audit-bundle/tests/"
         }
     },
     "minimum-stability": "stable",

@@ -8,7 +8,7 @@ use App\Entity\Application;
 use App\Entity\Citizen;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
-use Opus\AuditBundle\Model\AuditEntry;
+use Opus125\AuditBundle\Model\AuditEntry;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

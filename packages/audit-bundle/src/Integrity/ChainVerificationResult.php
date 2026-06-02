@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Integrity;
+namespace Opus125\AuditBundle\Integrity;
 
 /**
  * Outcome of verifying a chain segment.

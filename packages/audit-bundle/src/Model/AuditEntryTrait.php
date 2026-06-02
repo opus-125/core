@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Model;
+namespace Opus125\AuditBundle\Model;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Opus\AuditBundle\Enum\ActorType;
+use Opus125\AuditBundle\Enum\ActorType;
 
 /**
  * Composable implementation of {@see AuditEntryInterface}.

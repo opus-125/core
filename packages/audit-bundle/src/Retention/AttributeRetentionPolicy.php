@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Retention;
+namespace Opus125\AuditBundle\Retention;
 
-use Opus\AuditBundle\Metadata\AuditAttributeReader;
+use Opus125\AuditBundle\Metadata\AuditAttributeReader;
 
 /**
  * Default {@see RetentionPolicyInterface}: the duration declared by

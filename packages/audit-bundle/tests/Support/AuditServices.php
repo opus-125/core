@@ -2,28 +2,29 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Support;
+namespace Opus125\AuditBundle\Tests\Support;
 
 use Doctrine\Common\EventManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Events;
-use Opus\AuditBundle\Actor\ActorResolverInterface;
-use Opus\AuditBundle\Actor\AuditContext;
-use Opus\AuditBundle\Actor\SecurityActorResolver;
-use Opus\AuditBundle\Crypto\Cipher;
-use Opus\AuditBundle\Crypto\SensitiveValueCipher;
-use Opus\AuditBundle\Crypto\SubjectKeyProviderInterface;
-use Opus\AuditBundle\Integrity\CanonicalJsonEncoder;
-use Opus\AuditBundle\Integrity\HashCalculator;
-use Opus\AuditBundle\Metadata\AuditAttributeReader;
-use Opus\AuditBundle\Metadata\FieldSanitizer;
-use Opus\AuditBundle\Recording\AuditContextProvider;
-use Opus\AuditBundle\Recording\AuditRecorder;
-use Opus\AuditBundle\Recording\ChangeSetNormalizer;
-use Opus\AuditBundle\Recording\DoctrineAuditListener;
-use Opus\AuditBundle\Retention\AttributeRetentionPolicy;
-use Opus\AuditBundle\Retention\Purger;
-use Opus\AuditBundle\Serializer\AuditEntryNormalizer;
+use Opus125\AuditBundle\Actor\ActorResolverInterface;
+use Opus125\AuditBundle\Actor\AuditContext;
+use Opus125\AuditBundle\Actor\SecurityActorResolver;
+use Opus125\AuditBundle\Crypto\Cipher;
+use Opus125\AuditBundle\Crypto\SensitiveValueCipher;
+use Opus125\AuditBundle\Crypto\SubjectKeyProviderInterface;
+use Opus125\AuditBundle\Integrity\CanonicalJsonEncoder;
+use Opus125\AuditBundle\Integrity\HashCalculator;
+use Opus125\AuditBundle\Metadata\AuditAttributeReader;
+use Opus125\AuditBundle\Metadata\FieldSanitizer;
+use Opus125\AuditBundle\Recording\AuditContextProvider;
+use Opus125\AuditBundle\Recording\AuditRecorder;
+use Opus125\AuditBundle\Recording\ChangeSetNormalizer;
+use Opus125\AuditBundle\Recording\DoctrineAuditListener;
+use Opus125\AuditBundle\Retention\AttributeRetentionPolicy;
+use Opus125\AuditBundle\Retention\Purger;
+use Opus125\AuditBundle\Serializer\AuditEntryNormalizer;
+use Opus125\AuditBundle\Workflow\WorkflowTransitionBuffer;
 use Psr\Clock\ClockInterface;
 
 /**
@@ -41,6 +42,7 @@ final class AuditServices
         public readonly AuditContext $auditContext,
         public readonly Purger $purger,
         public readonly AuditEntryNormalizer $normalizer,
+        public readonly WorkflowTransitionBuffer $workflowBuffer,
     ) {
     }
 
@@ -69,8 +71,10 @@ final class AuditServices
             $clock,
         );
 
+        $workflowBuffer = new WorkflowTransitionBuffer();
+
         return new self(
-            new DoctrineAuditListener($recorder, $reader),
+            new DoctrineAuditListener($recorder, $reader, $workflowBuffer),
             $recorder,
             $keyProvider,
             $reader,
@@ -78,6 +82,7 @@ final class AuditServices
             $auditContext,
             new Purger($em, new AttributeRetentionPolicy($reader), $clock),
             new AuditEntryNormalizer($keyProvider, $cipher),
+            $workflowBuffer,
         );
     }
 

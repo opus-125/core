@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Crypto;
+namespace Opus125\AuditBundle\Crypto;
 
 /**
  * Default {@see SubjectKeyProviderInterface}: derives a per-entity key from the
@@ -29,6 +29,6 @@ final class AppSecretSubjectKeyProvider implements SubjectKeyProviderInterface
 
     public function keyFor(string $entityClass, string $entityId): string
     {
-        return hash_hkdf('sha256', $this->secret, self::KEY_BYTES, 'opus-audit:'.$entityClass.'#'.$entityId);
+        return hash_hkdf('sha256', $this->secret, self::KEY_BYTES, 'opus125-audit:'.$entityClass.'#'.$entityId);
     }
 }

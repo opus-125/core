@@ -23,7 +23,7 @@ export interface Bundle {
 export const bundles: Bundle[] = [
   {
     name: 'AuditBundle',
-    package: 'opus/audit-bundle',
+    package: 'opus125/audit-bundle',
     repo: 'https://github.com/opus-125/audit-bundle',
     description:
       'Tamper-evident audit trail with GDPR crypto-shredding and retention for Symfony.',

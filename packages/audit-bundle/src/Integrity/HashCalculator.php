@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Integrity;
+namespace Opus125\AuditBundle\Integrity;
 
 /**
  * Computes the links of the audit trail's linear hash-chain.

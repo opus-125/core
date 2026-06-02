@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Fixtures;
+namespace Opus125\AuditBundle\Tests\Fixtures;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Opus\AuditBundle\Attribute\Auditable;
-use Opus\AuditBundle\Attribute\AuditIgnore;
-use Opus\AuditBundle\Attribute\Retention;
-use Opus\AuditBundle\Attribute\Sensitive;
+use Opus125\AuditBundle\Attribute\Auditable;
+use Opus125\AuditBundle\Attribute\AuditIgnore;
+use Opus125\AuditBundle\Attribute\Retention;
+use Opus125\AuditBundle\Attribute\Sensitive;
 use Symfony\Component\Uid\Uuid;
 
 /**

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Recording;
+namespace Opus125\AuditBundle\Recording;
 
-use Opus\AuditBundle\Actor\Actor;
-use Opus\AuditBundle\Actor\ActorInterface;
-use Opus\AuditBundle\Actor\AuditContext;
+use Opus125\AuditBundle\Actor\Actor;
+use Opus125\AuditBundle\Actor\ActorInterface;
+use Opus125\AuditBundle\Actor\AuditContext;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**

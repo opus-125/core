@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Attribute;
+namespace Opus125\AuditBundle\Attribute;
 
 /**
  * Never record a property in the audit trail (Spine).

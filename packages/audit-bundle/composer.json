@@ -1,5 +1,5 @@
 {
-    "name": "opus/audit-bundle",
+    "name": "opus125/audit-bundle",
     "description": "Tamper-evident audit trail with GDPR-compliant crypto-shredding and retention for Symfony applications.",
     "type": "symfony-bundle",
     "license": "MIT",
@@ -26,19 +26,21 @@
         "doctrine/doctrine-bundle": "^3.2",
         "phpunit/phpunit": "^12.0",
         "symfony/framework-bundle": "^8.0",
-        "symfony/var-dumper": "^8.0"
+        "symfony/var-dumper": "^8.0",
+        "symfony/workflow": "^8.0"
     },
     "suggest": {
-        "doctrine/doctrine-bundle": "Auto-registers the audit entity mappings and the onFlush listener (^3.2 for Symfony 8)."
+        "doctrine/doctrine-bundle": "Auto-registers the audit entity mappings and the onFlush listener (^3.2 for Symfony 8).",
+        "symfony/workflow": "Auto-audits state-machine/workflow transitions for entities marked #[AuditableWorkflow] (^8.0)."
     },
     "autoload": {
         "psr-4": {
-            "Opus\\AuditBundle\\": "src/"
+            "Opus125\\AuditBundle\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Opus\\AuditBundle\\Tests\\": "tests/"
+            "Opus125\\AuditBundle\\Tests\\": "tests/"
         }
     },
     "minimum-stability": "stable",

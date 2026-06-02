@@ -1,6 +1,6 @@
-# Opus Demo Application
+# Opus125 Demo Application
 
-A minimal Symfony 8 application that wires up the Opus bundles from this monorepo
+A minimal Symfony 8 application that wires up the Opus125 bundles from this monorepo
 so they can be exercised end-to-end during development.
 
 The bundles are consumed through a Composer [path repository](https://getcomposer.org/doc/05-repositories.md#path),

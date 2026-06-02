@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Repository;
+namespace Opus125\AuditBundle\Repository;
 
 use Doctrine\ORM\EntityRepository;
-use Opus\AuditBundle\Integrity\CanonicalJsonEncoder;
-use Opus\AuditBundle\Integrity\ChainVerificationResult;
-use Opus\AuditBundle\Integrity\HashCalculator;
-use Opus\AuditBundle\Model\AuditEntryInterface;
+use Opus125\AuditBundle\Integrity\CanonicalJsonEncoder;
+use Opus125\AuditBundle\Integrity\ChainVerificationResult;
+use Opus125\AuditBundle\Integrity\HashCalculator;
+use Opus125\AuditBundle\Model\AuditEntryInterface;
 
 /**
  * Read access to the audit trail, plus the on-demand integrity check.

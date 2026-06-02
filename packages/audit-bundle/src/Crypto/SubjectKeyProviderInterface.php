@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Crypto;
+namespace Opus125\AuditBundle\Crypto;
 
 /**
  * Decides the encryption key for an audited entity's `#[Sensitive]` values —

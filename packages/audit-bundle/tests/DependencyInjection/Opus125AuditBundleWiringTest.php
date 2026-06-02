@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\DependencyInjection;
+namespace Opus125\AuditBundle\Tests\DependencyInjection;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Opus\AuditBundle\Command\PurgeCommand;
-use Opus\AuditBundle\Crypto\SubjectKeyProviderInterface;
-use Opus\AuditBundle\OpusAuditBundle;
-use Opus\AuditBundle\Recording\AuditRecorder;
-use Opus\AuditBundle\Recording\DoctrineAuditListener;
-use Opus\AuditBundle\Serializer\AuditEntryNormalizer;
+use Opus125\AuditBundle\Command\PurgeCommand;
+use Opus125\AuditBundle\Crypto\SubjectKeyProviderInterface;
+use Opus125\AuditBundle\Opus125AuditBundle;
+use Opus125\AuditBundle\Recording\AuditRecorder;
+use Opus125\AuditBundle\Recording\DoctrineAuditListener;
+use Opus125\AuditBundle\Serializer\AuditEntryNormalizer;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
@@ -20,7 +20,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
  * Compiles the bundle's container against a stub EntityManager (which a real app
  * supplies via DoctrineBundle) to prove the service graph wires up.
  */
-final class OpusAuditBundleWiringTest extends TestCase
+final class Opus125AuditBundleWiringTest extends TestCase
 {
     private function compile(): ContainerBuilder
     {
@@ -29,11 +29,11 @@ final class OpusAuditBundleWiringTest extends TestCase
         $container->setParameter('kernel.secret', 'test-secret');
         $container->register(EntityManagerInterface::class, EntityManagerInterface::class)->setSynthetic(true)->setPublic(true);
 
-        $bundle = new OpusAuditBundle();
+        $bundle = new Opus125AuditBundle();
         $extension = $bundle->getContainerExtension();
         self::assertNotNull($extension);
         $container->registerExtension($extension);
-        $container->loadFromExtension('opus_audit', []);
+        $container->loadFromExtension('opus125_audit', []);
 
         $container->addCompilerPass(new class implements CompilerPassInterface {
             public function process(ContainerBuilder $container): void

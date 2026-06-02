@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Support;
+namespace Opus125\AuditBundle\Tests\Support;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
-use Opus\AuditBundle\Model\AuditEntry;
+use Opus125\AuditBundle\Model\AuditEntry;
 use PHPUnit\Framework\TestCase;
 
 /**

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Retention;
+namespace Opus125\AuditBundle\Retention;
 
 /**
  * Supplies the minimum retention duration for an entity class's audit entries.

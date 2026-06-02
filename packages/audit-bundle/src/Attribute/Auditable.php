@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Attribute;
+namespace Opus125\AuditBundle\Attribute;
 
 /**
  * Opt an entity class into the audit trail (Spine).
  *
  * Without this attribute an entity is **not** audited — nothing surprising
  * happens by default. Applying it makes every create/update/delete of the
- * entity produce an {@see \Opus\AuditBundle\Model\AuditEntry}.
+ * entity produce an {@see \Opus125\AuditBundle\Model\AuditEntry}.
  *
  * The optional {@see $stream} chooses the chain partition the entries are
  * serialised into. Entries within one stream share a gapless `sequence_no` and

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle;
+namespace Opus125\AuditBundle;
 
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
-use Opus\AuditBundle\Model\AuditEntry;
-use Opus\AuditBundle\Model\AuditEntryInterface;
+use Opus125\AuditBundle\Model\AuditEntry;
+use Opus125\AuditBundle\Model\AuditEntryInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
@@ -20,9 +20,9 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
  * entity by mapping your own and pointing `resolve_target_entities` at it; the
  * crypto key comes from `APP_SECRET` by default.
  */
-final class OpusAuditBundle extends AbstractBundle
+final class Opus125AuditBundle extends AbstractBundle
 {
-    protected string $extensionAlias = 'opus_audit';
+    protected string $extensionAlias = 'opus125_audit';
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
@@ -43,7 +43,7 @@ final class OpusAuditBundle extends AbstractBundle
 
         if (class_exists(DoctrineOrmMappingsPass::class)) {
             $container->addCompilerPass(DoctrineOrmMappingsPass::createAttributeMappingDriver(
-                ['Opus\\AuditBundle\\Model'],
+                ['Opus125\\AuditBundle\\Model'],
                 [__DIR__.'/Model'],
             ));
         }

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Recording;
+namespace Opus125\AuditBundle\Recording;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Opus\AuditBundle\Crypto\SensitiveValueCipher;
-use Opus\AuditBundle\Metadata\AuditAttributeReader;
-use Opus\AuditBundle\Metadata\FieldSanitizer;
-use Opus\AuditBundle\Support\EntityIdentifier;
+use Opus125\AuditBundle\Crypto\SensitiveValueCipher;
+use Opus125\AuditBundle\Metadata\AuditAttributeReader;
+use Opus125\AuditBundle\Metadata\FieldSanitizer;
+use Opus125\AuditBundle\Support\EntityIdentifier;
 
 /**
  * Turns a Doctrine change set (scalar fields and collection diffs) into the

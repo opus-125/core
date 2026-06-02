@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Functional;
+namespace Opus125\AuditBundle\Tests\Functional;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
-use Opus\AuditBundle\Model\AuditEntry;
-use Opus\AuditBundle\OpusAuditBundle;
-use Opus\AuditBundle\Tests\Fixtures\Customer;
-use Opus\AuditBundle\Tests\Fixtures\Invoice;
-use Opus\AuditBundle\Tests\Fixtures\Tag;
+use Opus125\AuditBundle\Model\AuditEntry;
+use Opus125\AuditBundle\Opus125AuditBundle;
+use Opus125\AuditBundle\Tests\Fixtures\Customer;
+use Opus125\AuditBundle\Tests\Fixtures\Invoice;
+use Opus125\AuditBundle\Tests\Fixtures\Tag;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
@@ -23,7 +23,7 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 /**
  * Proves the standard, zero-glue integration: a real Symfony kernel with
- * DoctrineBundle + OpusAuditBundle records an audit entry on flush, with the
+ * DoctrineBundle + Opus125AuditBundle records an audit entry on flush, with the
  * entity mappings and the onFlush listener wired automatically — no manual
  * EntityManager and no manual listener registration.
  */
@@ -60,7 +60,7 @@ final class DoctrineBundleIntegrationTest extends TestCase
     {
         $container = $this->boot();
 
-        $em = $container->get('opus_test.em');
+        $em = $container->get('opus125_test.em');
         self::assertInstanceOf(EntityManagerInterface::class, $em);
         $this->resetSchema($em);
 
@@ -83,7 +83,7 @@ final class DoctrineBundleIntegrationTest extends TestCase
 
         try {
             $this->kernel->boot();
-            $em = $this->kernel->getContainer()->get('opus_test.em');
+            $em = $this->kernel->getContainer()->get('opus125_test.em');
             self::assertInstanceOf(EntityManagerInterface::class, $em);
             $em->getConnection()->executeQuery('SELECT 1');
         } catch (\Throwable $e) {
@@ -126,7 +126,7 @@ final class DoctrineBundleIntegrationTest extends TestCase
 }
 
 /**
- * Minimal kernel wiring FrameworkBundle + DoctrineBundle + OpusAuditBundle.
+ * Minimal kernel wiring FrameworkBundle + DoctrineBundle + Opus125AuditBundle.
  */
 final class AuditKernel extends BaseKernel
 {
@@ -134,7 +134,7 @@ final class AuditKernel extends BaseKernel
 
     public function registerBundles(): iterable
     {
-        return [new FrameworkBundle(), new DoctrineBundle(), new OpusAuditBundle()];
+        return [new FrameworkBundle(), new DoctrineBundle(), new Opus125AuditBundle()];
     }
 
     public function getProjectDir(): string
@@ -144,7 +144,7 @@ final class AuditKernel extends BaseKernel
 
     public function getCacheDir(): string
     {
-        return sys_get_temp_dir().'/opus_audit_func_'.spl_object_id($this);
+        return sys_get_temp_dir().'/opus125_audit_func_'.spl_object_id($this);
     }
 
     public function getLogDir(): string
@@ -154,7 +154,7 @@ final class AuditKernel extends BaseKernel
 
     private function configureContainer(ContainerConfigurator $container): void
     {
-        $dsn = getenv('OPUS_AUDIT_TEST_DSN') ?: 'postgresql://postgres@127.0.0.1:5432/opus_audit_test';
+        $dsn = getenv('OPUS125_AUDIT_TEST_DSN') ?: 'postgresql://postgres@127.0.0.1:5432/opus125_audit_test';
 
         $container->extension('framework', [
             'secret' => 'test-secret',
@@ -171,16 +171,16 @@ final class AuditKernel extends BaseKernel
                     'Fixtures' => [
                         'type' => 'attribute',
                         'dir' => \dirname(__DIR__).'/Fixtures',
-                        'prefix' => 'Opus\\AuditBundle\\Tests\\Fixtures',
+                        'prefix' => 'Opus125\\AuditBundle\\Tests\\Fixtures',
                         'is_bundle' => false,
                     ],
                 ],
             ],
         ]);
 
-        $container->extension('opus_audit', []);
+        $container->extension('opus125_audit', []);
 
-        $container->services()->alias('opus_test.em', EntityManagerInterface::class)->public();
+        $container->services()->alias('opus125_test.em', EntityManagerInterface::class)->public();
     }
 
     private function configureRoutes(RoutingConfigurator $routes): void

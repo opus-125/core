@@ -1,13 +1,13 @@
 {
-    "name": "opus/demo",
-    "description": "Demo application integrating the Opus bundles.",
+    "name": "opus125/demo",
+    "description": "Demo application integrating the Opus125 bundles.",
     "type": "project",
     "license": "MIT",
     "require": {
         "php": ">=8.4",
         "doctrine/doctrine-bundle": "^3.2",
         "doctrine/orm": "^3.3",
-        "opus/audit-bundle": "@dev",
+        "opus125/audit-bundle": "@dev",
         "symfony/console": "^8.0",
         "symfony/dotenv": "^8.0",
         "symfony/framework-bundle": "^8.0",

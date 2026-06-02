@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Actor;
+namespace Opus125\AuditBundle\Actor;
 
-use Opus\AuditBundle\Enum\ActorType;
+use Opus125\AuditBundle\Enum\ActorType;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 

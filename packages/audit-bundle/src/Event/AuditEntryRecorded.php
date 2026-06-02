@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Event;
+namespace Opus125\AuditBundle\Event;
 
-use Opus\AuditBundle\Model\AuditEntryInterface;
+use Opus125\AuditBundle\Model\AuditEntryInterface;
 
 /**
  * Dispatched after an audit entry has been built and scheduled for insertion in

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Metadata;
+namespace Opus125\AuditBundle\Tests\Metadata;
 
-use Opus\AuditBundle\Metadata\FieldSanitizer;
+use Opus125\AuditBundle\Metadata\FieldSanitizer;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

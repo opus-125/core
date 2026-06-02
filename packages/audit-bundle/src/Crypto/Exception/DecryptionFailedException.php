@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Crypto\Exception;
+namespace Opus125\AuditBundle\Crypto\Exception;
 
 /**
  * Raised when authenticated decryption fails — a wrong/destroyed key, mismatched

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Opus\AuditBundle\Tests\Crypto;
+namespace Opus125\AuditBundle\Tests\Crypto;
 
-use Opus\AuditBundle\Crypto\Cipher;
-use Opus\AuditBundle\Crypto\SensitiveValueCipher;
+use Opus125\AuditBundle\Crypto\Cipher;
+use Opus125\AuditBundle\Crypto\SensitiveValueCipher;
 use PHPUnit\Framework\TestCase;
 
 final class SensitiveValueCipherTest extends TestCase
