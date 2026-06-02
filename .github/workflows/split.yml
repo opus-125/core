@@ -27,6 +27,10 @@ jobs:
           # local = directory under packages/, split = target repo in opus-125
           - local: audit-bundle
             split: audit-bundle
+          - local: data-contracts
+            split: data-contracts
+          - local: gdpr-bundle
+            split: gdpr-bundle
     steps:
       - uses: actions/checkout@v4
 

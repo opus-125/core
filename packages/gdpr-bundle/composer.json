@@ -1,0 +1,50 @@
+{
+    "name": "opus125/gdpr-bundle",
+    "description": "Registry-driven GDPR toolkit for Symfony: subject access & portability, erasure (nullify / pseudonymize / crypto-shred) and records of processing, built on a declarative personal-data map.",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "keywords": ["symfony", "bundle", "gdpr", "dsgvo", "privacy", "personal-data", "erasure", "crypto-shredding", "doctrine"],
+    "homepage": "https://github.com/opus-125/gdpr-bundle",
+    "require": {
+        "php": ">=8.4",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.2",
+        "doctrine/orm": "^3.3",
+        "doctrine/persistence": "^3.4 || ^4.0",
+        "opus125/data-contracts": "self.version",
+        "symfony/config": "^8.0",
+        "symfony/console": "^8.0",
+        "symfony/dependency-injection": "^8.0",
+        "symfony/http-kernel": "^8.0",
+        "symfony/serializer": "^8.0",
+        "symfony/uid": "^8.0"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.2",
+        "opus125/audit-bundle": "self.version",
+        "phpunit/phpunit": "^12.0",
+        "symfony/framework-bundle": "^8.0",
+        "symfony/var-dumper": "^8.0"
+    },
+    "suggest": {
+        "doctrine/doctrine-bundle": "Auto-registers the SubjectKey entity mapping and the DB-backed key store (^3.2 for Symfony 8).",
+        "opus125/audit-bundle": "When present, crypto-shredding a subject also renders their #[Sensitive] audit-trail values unreadable, via a key-provider bridge (^0.1)."
+    },
+    "autoload": {
+        "psr-4": {
+            "Opus125\\GdprBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Opus125\\GdprBundle\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1-dev"
+        }
+    }
+}

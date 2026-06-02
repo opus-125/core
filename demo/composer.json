@@ -8,6 +8,8 @@
         "doctrine/doctrine-bundle": "^3.2",
         "doctrine/orm": "^3.3",
         "opus125/audit-bundle": "@dev",
+        "opus125/data-contracts": "@dev",
+        "opus125/gdpr-bundle": "@dev",
         "symfony/console": "^8.0",
         "symfony/dotenv": "^8.0",
         "symfony/framework-bundle": "^8.0",

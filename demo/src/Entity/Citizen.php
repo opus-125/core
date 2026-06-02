@@ -6,37 +6,35 @@ namespace App\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Opus125\DataContracts\Attribute as Gdpr;
+use Opus125\DataContracts\Erasure\ErasureStrategy;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * A citizen — the data subject an {@see Application} concerns. Not itself audited.
+ * A citizen — the data subject an {@see Application} concerns.
  *
- * Holds the per-subject audit key (the "key on the user" pattern): while it is
- * set the applicant's sensitive audit values can be read; anonymising the
- * citizen ({@see anonymize()}) drops the key, which crypto-shreds them.
+ * Marked `#[DataSubject]`: the GDPR bundle resolves an application back to its
+ * applicant, and erasing the citizen (`gdpr:erase`) pseudonymises their name and
+ * crypto-shreds their key — which also redacts the applicant's sensitive audit
+ * values, since the audit key provider is bridged to the GDPR key store.
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'citizen')]
+#[Gdpr\DataSubject]
 class Citizen
 {
     #[ORM\Id]
     #[ORM\Column(type: 'guid')]
     private string $id;
 
+    #[Gdpr\PersonalData(category: 'name', purpose: 'registry', basis: 'legal_obligation', erasure: ErasureStrategy::Pseudonymize)]
     #[ORM\Column(type: Types::STRING)]
     private string $name;
-
-    /**
-     * Base64 of a random 32-byte key, or null once the citizen is anonymised.
-     */
-    #[ORM\Column(name: 'audit_key', type: Types::STRING, nullable: true)]
-    private ?string $auditKey;
 
     public function __construct(string $name)
     {
         $this->id = Uuid::v7()->toRfc4122();
         $this->name = $name;
-        $this->auditKey = base64_encode(random_bytes(32));
     }
 
     public function getId(): string
@@ -47,29 +45,6 @@ class Citizen
     public function getName(): string
     {
         return $this->name;
-    }
-
-    /**
-     * The raw audit key, or null if anonymised.
-     */
-    public function getAuditKey(): ?string
-    {
-        if (null === $this->auditKey) {
-            return null;
-        }
-
-        return base64_decode($this->auditKey, true) ?: null;
-    }
-
-    public function anonymize(): void
-    {
-        $this->name = 'anonymised';
-        $this->auditKey = null;
-    }
-
-    public function isAnonymized(): bool
-    {
-        return null === $this->auditKey;
     }
 
     public function __toString(): string

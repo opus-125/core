@@ -7,4 +7,5 @@ return [
     Symfony\Bundle\TwigBundle\TwigBundle::class => ['all' => true],
     Doctrine\Bundle\DoctrineBundle\DoctrineBundle::class => ['all' => true],
     Opus125\AuditBundle\Opus125AuditBundle::class => ['all' => true],
+    Opus125\GdprBundle\Opus125GdprBundle::class => ['all' => true],
 ];

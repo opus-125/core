@@ -9,7 +9,8 @@ services:
             - '../src/Kernel.php'
             - '../src/Entity/'
 
-    # Use the project's own key provider (key stored on the Citizen) instead of
-    # the bundle's APP_SECRET-derived default — this is how crypto-shredding is
-    # customised: implement the interface and alias it.
-    Opus125\AuditBundle\Crypto\SubjectKeyProviderInterface: '@App\Audit\CitizenKeyProvider'
+    # Bridge the audit bundle's per-subject key onto the GDPR key store, so that
+    # crypto-shredding a citizen via `gdpr:erase` also redacts their sensitive
+    # audit values — while the audit hash-chain stays valid. This one alias is the
+    # entire integration between the two otherwise-independent bundles.
+    Opus125\AuditBundle\Crypto\SubjectKeyProviderInterface: '@Opus125\GdprBundle\Integration\Audit\AuditKeyProviderBridge'
